@@ -1,13 +1,13 @@
+import Hero from "../components/Hero";
+import HowItWorks from "../components/HowItWorks";
+import AIFeatures from "../components/AIFeatures";
+
 function Home() {
   return (
     <main>
-      <h1>Cleaner India Starts With Us</h1>
-
-      <p>
-        AI-powered waste reporting, collection and prevention.
-      </p>
-
-      <button>Report Garbage</button>
+      <Hero />
+      <HowItWorks />
+      <AIFeatures />
     </main>
   );
 }
