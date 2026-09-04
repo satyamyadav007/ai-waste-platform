@@ -1,11 +1,12 @@
-import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./App.css";
 
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import ReportGarbage from "./pages/ReportGarbage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ReportGarbage from "./pages/ReportGarbage";
+import CitizenDashboard from "./pages/CitizenDashboard";
 
 function App() {
   return (
@@ -14,13 +15,13 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/report" element={<ReportGarbage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/report" element={<ReportGarbage />} />
+        <Route path="/dashboard" element={<CitizenDashboard />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
-

@@ -615,3 +615,215 @@ body {
     font-size: 34px;
   }
 }
+
+/* =========================
+   CITIZEN DASHBOARD
+========================= */
+
+.dashboard-page {
+  min-height: 100vh;
+  padding: 70px 7%;
+  background: #f7faf7;
+}
+
+.dashboard-header {
+  max-width: 1100px;
+  margin: 0 auto 45px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
+
+.dashboard-tag {
+  margin: 0 0 10px;
+  color: #238636;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1.15;
+}
+
+.dashboard-header p:last-child {
+  margin: 15px 0 0;
+  color: #596659;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.dashboard-report-btn {
+  padding: 14px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #238636;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dashboard-report-btn:hover {
+  background: #1b6d2b;
+}
+
+
+/* =========================
+   DASHBOARD STATISTICS
+========================= */
+
+.dashboard-stats {
+  max-width: 1100px;
+  margin: 0 auto 60px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+  background: white;
+  border: 1px solid #dce8dd;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef7ef;
+  border-radius: 10px;
+  font-size: 24px;
+}
+
+.stat-card p {
+  margin: 0 0 5px;
+  color: #596659;
+  font-size: 14px;
+}
+
+.stat-card h2 {
+  margin: 0;
+  font-size: 30px;
+}
+
+
+/* =========================
+   MY REPORTS
+========================= */
+
+.reports-section {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-title {
+  margin-bottom: 25px;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 32px;
+}
+
+
+/* =========================
+   EMPTY REPORTS
+========================= */
+
+.empty-reports {
+  padding: 60px 30px;
+  text-align: center;
+  background: white;
+  border: 1px solid #dce8dd;
+  border-radius: 14px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.empty-reports h3 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.empty-reports p {
+  max-width: 550px;
+  margin: 0 auto 25px;
+  color: #596659;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.empty-report-btn {
+  padding: 12px 22px;
+  border: 1px solid #238636;
+  border-radius: 8px;
+  background: #238636;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty-report-btn:hover {
+  background: #1b6d2b;
+}
+
+
+/* =========================
+   DASHBOARD MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+  .dashboard-page {
+    padding: 55px 20px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 35px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 36px;
+  }
+
+  .dashboard-report-btn {
+    width: 100%;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 45px;
+  }
+
+  .stat-card {
+    padding: 22px;
+  }
+
+  .section-title h2 {
+    font-size: 28px;
+  }
+
+  .empty-reports {
+    padding: 45px 20px;
+  }
+}
