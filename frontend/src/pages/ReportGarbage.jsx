@@ -73,9 +73,19 @@ function ReportGarbage() {
       createdAt: new Date().toISOString(),
     };
 
-    console.log("Garbage Report:", report);
+    const existingReports =
+     JSON.parse(localStorage.getItem("garbageReports")) || [];
 
-    alert("Garbage report submitted successfully!");
+    existingReports.push(report);
+
+    localStorage.setItem(
+      "garbageReports",
+      JSON.stringify(existingReports)
+);
+
+console.log("Garbage Report:", report);
+
+alert("Garbage report submitted successfully!");
 
     setImage(null);
     setGarbageType("");
