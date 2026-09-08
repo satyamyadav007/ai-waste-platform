@@ -62,6 +62,18 @@ function ReportGarbage() {
       return;
     }
 
+    // Get the currently logged-in citizen
+    const loggedInUser = JSON.parse(
+      localStorage.getItem("loggedInUser")
+    );
+
+    // Check whether the citizen is logged in
+    if (!loggedInUser) {
+      alert("Please login before submitting a report.");
+      return;
+    }
+
+    // Create the garbage report
     const report = {
       id: Date.now(),
       image: image,
@@ -71,22 +83,27 @@ function ReportGarbage() {
       longitude: location.longitude,
       status: "Pending",
       createdAt: new Date().toISOString(),
+      userEmail: loggedInUser.email,
     };
 
+    // Get existing reports
     const existingReports =
-     JSON.parse(localStorage.getItem("garbageReports")) || [];
+      JSON.parse(localStorage.getItem("garbageReports")) || [];
 
+    // Add new report
     existingReports.push(report);
 
+    // Save reports
     localStorage.setItem(
       "garbageReports",
       JSON.stringify(existingReports)
-);
+    );
 
-console.log("Garbage Report:", report);
+    console.log("Garbage Report:", report);
 
-alert("Garbage report submitted successfully!");
+    alert("Garbage report submitted successfully!");
 
+    // Clear form
     setImage(null);
     setGarbageType("");
     setDescription("");
@@ -234,7 +251,6 @@ alert("Garbage report submitted successfully!");
                 : "📍 Use My Current Location"}
             </button>
 
-
             {location && (
               <div className="location-result">
 
@@ -252,7 +268,6 @@ alert("Garbage report submitted successfully!");
 
               </div>
             )}
-
 
             <p className="location-note">
               Your location will help the waste collector
