@@ -1069,3 +1069,49 @@ body {
 .rating-submitted p {
   margin: 8px 0 0;
 }
+
+.ai-analysis-box {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f7faf7;
+  border: 1px solid #dce8dd;
+  border-radius: 10px;
+}
+
+.ai-analyze-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-analyze-button:hover {
+  background: #256628;
+}
+
+.ai-analyze-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ai-result {
+  margin-top: 20px;
+  padding: 18px;
+  background: white;
+  border: 1px solid #dce8dd;
+  border-radius: 10px;
+}
+
+.ai-result h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.ai-result p {
+  margin: 8px 0;
+  line-height: 1.5;
+}

@@ -2,22 +2,121 @@ import { useState } from "react";
 
 function ReportGarbage() {
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+
   const [location, setLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+
   const [garbageType, setGarbageType] = useState("");
   const [description, setDescription] = useState("");
+
+  const [aiResult, setAiResult] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   function handleImageChange(event) {
     const file = event.target.files[0];
 
     if (file) {
+      setImageFile(file);
       setImage(URL.createObjectURL(file));
+
+      setAiResult(null);
+      setGarbageType("");
+      setDescription("");
+    }
+  }
+
+  async function analyzeWithAI() {
+    if (!imageFile) {
+      alert("Please upload a garbage image first.");
+      return;
+    }
+
+    setAiLoading(true);
+    setAiResult(null);
+
+    try {
+      const reader = new FileReader();
+
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result.split(",")[1];
+
+          const response = await fetch(
+            "http://localhost:5000/api/analyze-garbage",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json",
+              },
+
+              body: JSON.stringify({
+                image: base64Image,
+                mimeType: imageFile.type,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          console.log("AI result received:", data);
+
+          if (!response.ok) {
+            alert(
+              data.message || "AI analysis failed."
+            );
+
+            setAiLoading(false);
+            return;
+          }
+
+          setAiResult(data);
+
+          if (data.garbageDetected) {
+            setGarbageType(data.garbageType);
+          }
+
+          setDescription(
+            data.description || ""
+          );
+
+          setAiLoading(false);
+        } catch (error) {
+          console.error(
+            "Frontend AI Error:",
+            error
+          );
+
+          alert(
+            "Unable to connect to the AI backend."
+          );
+
+          setAiLoading(false);
+        }
+      };
+
+      reader.readAsDataURL(imageFile);
+    } catch (error) {
+      console.error(
+        "AI Error:",
+        error
+      );
+
+      alert(
+        "Something went wrong during AI analysis."
+      );
+
+      setAiLoading(false);
     }
   }
 
   function getLocation() {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      alert(
+        "Geolocation is not supported by your browser."
+      );
+
       return;
     }
 
@@ -32,8 +131,12 @@ function ReportGarbage() {
 
         setLocationLoading(false);
       },
+
       () => {
-        alert("Unable to get your location. Please allow location access.");
+        alert(
+          "Unable to get your location. Please allow location access."
+        );
+
         setLocationLoading(false);
       }
     );
@@ -43,98 +146,125 @@ function ReportGarbage() {
     event.preventDefault();
 
     if (!image) {
-      alert("Please upload a garbage image.");
+      alert(
+        "Please upload a garbage image."
+      );
+
       return;
     }
 
     if (!garbageType) {
-      alert("Please select the garbage type.");
+      alert(
+        "Please select the garbage type."
+      );
+
       return;
     }
 
     if (!description.trim()) {
-      alert("Please enter a description.");
+      alert(
+        "Please enter a description."
+      );
+
       return;
     }
 
     if (!location) {
-      alert("Please detect your location.");
+      alert(
+        "Please detect your location."
+      );
+
       return;
     }
 
-    // Get the currently logged-in citizen
     const loggedInUser = JSON.parse(
       localStorage.getItem("loggedInUser")
     );
 
-    // Check whether the citizen is logged in
     if (!loggedInUser) {
-      alert("Please login before submitting a report.");
+      alert(
+        "Please login before submitting a report."
+      );
+
       return;
     }
 
-    // Create the garbage report
     const report = {
       id: Date.now(),
+
       image: image,
+
       garbageType: garbageType,
+
       description: description,
+
       latitude: location.latitude,
+
       longitude: location.longitude,
+
       status: "Pending",
+
       createdAt: new Date().toISOString(),
+
       userEmail: loggedInUser.email,
+
+      aiResult: aiResult,
     };
 
-    // Get existing reports
     const existingReports =
-      JSON.parse(localStorage.getItem("garbageReports")) || [];
+      JSON.parse(
+        localStorage.getItem("garbageReports")
+      ) || [];
 
-    // Add new report
     existingReports.push(report);
 
-    // Save reports
     localStorage.setItem(
       "garbageReports",
       JSON.stringify(existingReports)
     );
 
-    console.log("Garbage Report:", report);
+    console.log(
+      "Garbage Report:",
+      report
+    );
 
-    alert("Garbage report submitted successfully!");
+    alert(
+      "Garbage report submitted successfully!"
+    );
 
-    // Clear form
     setImage(null);
+    setImageFile(null);
     setGarbageType("");
     setDescription("");
     setLocation(null);
+    setAiResult(null);
   }
 
   return (
     <div className="report-page">
-
       <div className="report-container">
-
         <div className="report-heading">
-          <p className="section-tag">REPORT GARBAGE</p>
+          <p className="section-tag">
+            REPORT GARBAGE
+          </p>
 
-          <h1>Report a Garbage Problem</h1>
+          <h1>
+            Report a Garbage Problem
+          </h1>
 
           <p>
-            Help keep your neighbourhood clean by reporting
-            garbage that needs attention.
+            Help keep your neighbourhood clean by
+            reporting garbage that needs attention.
           </p>
         </div>
 
         <div className="report-form">
-
-          {/* IMAGE UPLOAD */}
-
           <div className="form-group">
-            <label>Garbage Image</label>
+            <label>
+              Garbage Image
+            </label>
 
             <label className="image-upload">
-
               {image ? (
                 <img
                   src={image}
@@ -142,7 +272,9 @@ function ReportGarbage() {
                 />
               ) : (
                 <>
-                  <span className="upload-icon">📷</span>
+                  <span className="upload-icon">
+                    📷
+                  </span>
 
                   <strong>
                     Upload a garbage image
@@ -160,15 +292,70 @@ function ReportGarbage() {
                 onChange={handleImageChange}
                 hidden
               />
-
             </label>
           </div>
 
+          {image && (
+            <div className="ai-analysis-box">
+              <button
+                type="button"
+                className="ai-analyze-button"
+                onClick={analyzeWithAI}
+                disabled={aiLoading}
+              >
+                {aiLoading
+                  ? "🤖 AI is analyzing..."
+                  : "🤖 Analyze Image with AI"}
+              </button>
 
-          {/* GARBAGE TYPE */}
+              {aiResult && (
+                <div className="ai-result">
+                  <h3>
+                    🤖 AI Analysis Result
+                  </h3>
+
+                  <p>
+                    <strong>
+                      Garbage Detected:
+                    </strong>{" "}
+                    {aiResult.garbageDetected
+                      ? "Yes"
+                      : "No"}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Garbage Type:
+                    </strong>{" "}
+                    {aiResult.garbageType}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Confidence:
+                    </strong>{" "}
+                    {aiResult.confidence}%
+                  </p>
+
+                  <p>
+                    <strong>
+                      Severity:
+                    </strong>{" "}
+                    {aiResult.severity}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Description:
+                    </strong>{" "}
+                    {aiResult.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="form-group">
-
             <label htmlFor="garbage-type">
               Garbage Type
             </label>
@@ -177,47 +364,42 @@ function ReportGarbage() {
               id="garbage-type"
               value={garbageType}
               onChange={(event) =>
-                setGarbageType(event.target.value)
+                setGarbageType(
+                  event.target.value
+                )
               }
             >
-
               <option value="">
                 Select garbage type
               </option>
 
-              <option value="household">
+              <option value="Household Waste">
                 Household Waste
               </option>
 
-              <option value="plastic">
+              <option value="Plastic Waste">
                 Plastic Waste
               </option>
 
-              <option value="construction">
+              <option value="Construction Waste">
                 Construction Waste
               </option>
 
-              <option value="organic">
+              <option value="Organic Waste">
                 Organic Waste
               </option>
 
-              <option value="mixed">
+              <option value="Mixed Waste">
                 Mixed Waste
               </option>
 
-              <option value="other">
+              <option value="Other">
                 Other
               </option>
-
             </select>
-
           </div>
 
-
-          {/* DESCRIPTION */}
-
           <div className="form-group">
-
             <label htmlFor="description">
               Description
             </label>
@@ -228,18 +410,17 @@ function ReportGarbage() {
               rows="5"
               value={description}
               onChange={(event) =>
-                setDescription(event.target.value)
+                setDescription(
+                  event.target.value
+                )
               }
             ></textarea>
-
           </div>
 
-
-          {/* LOCATION */}
-
           <div className="form-group">
-
-            <label>Location</label>
+            <label>
+              Location
+            </label>
 
             <button
               type="button"
@@ -253,31 +434,27 @@ function ReportGarbage() {
 
             {location && (
               <div className="location-result">
-
                 <strong>
                   📍 Location detected
                 </strong>
 
                 <p>
-                  Latitude: {location.latitude}
+                  Latitude:{" "}
+                  {location.latitude}
                 </p>
 
                 <p>
-                  Longitude: {location.longitude}
+                  Longitude:{" "}
+                  {location.longitude}
                 </p>
-
               </div>
             )}
 
             <p className="location-note">
-              Your location will help the waste collector
-              find the garbage.
+              Your location will help the waste
+              collector find the garbage.
             </p>
-
           </div>
-
-
-          {/* SUBMIT */}
 
           <button
             type="button"
@@ -286,11 +463,8 @@ function ReportGarbage() {
           >
             Submit Report
           </button>
-
         </div>
-
       </div>
-
     </div>
   );
 }
