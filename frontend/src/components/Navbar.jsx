@@ -36,6 +36,10 @@ function Navbar() {
           Report Garbage
         </Link>
 
+        <Link to="/collector-dashboard">
+          Collector Portal
+        </Link>
+
         {isLoggedIn ? (
           <>
             <Link to="/dashboard">

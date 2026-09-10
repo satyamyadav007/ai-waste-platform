@@ -7,6 +7,7 @@ import ReportGarbage from "./pages/ReportGarbage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CitizenDashboard from "./pages/CitizenDashboard";
+import CollectorDashboard from "./pages/CollectorDashboard";
 
 function ProtectedDashboard() {
   const loggedInUser = localStorage.getItem("loggedInUser");
@@ -36,6 +37,11 @@ function App() {
         <Route
           path="/dashboard"
           element={<ProtectedDashboard />}
+        />
+
+        <Route
+        path="/collector-dashboard"
+        element={<CollectorDashboard />}
         />
 
       </Routes>

@@ -951,3 +951,56 @@ body {
     gap: 12px;
   }
 }
+
+.collector-action {
+  margin-top: 20px;
+}
+
+.proof-upload {
+  display: inline-block;
+  padding: 12px 18px;
+  background: #e8f5e9;
+  border: 1px solid #b8d8ba;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.proof-upload:hover {
+  background: #dff0e1;
+}
+
+.proof-preview {
+  margin-top: 15px;
+}
+
+.proof-preview strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.proof-preview img {
+  width: 220px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.collect-button {
+  display: inline-block;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.collect-button:hover {
+  background: #256628;
+}
