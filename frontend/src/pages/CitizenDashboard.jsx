@@ -17,17 +17,20 @@ function CitizenDashboard() {
     );
   });
 
+  const [ratings, setRatings] = useState({});
+  const [feedback, setFeedback] = useState({});
+
   const totalReports = reports.length;
 
   const pendingReports = reports.filter(
     (report) => report.status === "Pending"
   ).length;
 
- const resolvedReports = reports.filter(
-  (report) =>
-    report.status === "Collected" ||
-    report.status === "Resolved"
-).length;
+  const resolvedReports = reports.filter(
+    (report) =>
+      report.status === "Collected" ||
+      report.status === "Resolved"
+  ).length;
 
   function getGarbageTypeName(type) {
     const types = {
@@ -40,6 +43,39 @@ function CitizenDashboard() {
     };
 
     return types[type] || type;
+  }
+
+  function handleRating(reportId) {
+    const selectedRating = ratings[reportId];
+
+    if (!selectedRating) {
+      alert("Please select a rating first.");
+      return;
+    }
+
+    const allReports =
+      JSON.parse(localStorage.getItem("garbageReports")) || [];
+
+    const updatedReports = allReports.map((report) => {
+      if (report.id === reportId) {
+        return {
+          ...report,
+          rating: selectedRating,
+          feedback: feedback[reportId] || "",
+        };
+      }
+
+      return report;
+    });
+
+    localStorage.setItem(
+      "garbageReports",
+      JSON.stringify(updatedReports)
+    );
+
+    alert("Thank you! Your rating has been submitted.");
+
+    window.location.reload();
   }
 
   return (
@@ -164,6 +200,79 @@ function CitizenDashboard() {
                         />
                       </div>
                     )}
+
+                  {report.status === "Collected" && (
+                    <div className="rating-section">
+                      <h3>⭐ Rate Collector</h3>
+
+                      {report.rating ? (
+                        <div className="rating-submitted">
+                          <strong>
+                            Your Rating: {report.rating}/5 ⭐
+                          </strong>
+
+                          {report.feedback && (
+                            <p>
+                              Your Feedback: {report.feedback}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="rating-stars">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() =>
+                                  setRatings(
+                                    (previousRatings) => ({
+                                      ...previousRatings,
+                                      [report.id]: star,
+                                    })
+                                  )
+                                }
+                                className={
+                                  ratings[report.id] >= star
+                                    ? "star active"
+                                    : "star"
+                                }
+                              >
+                                ★
+                              </button>
+                            ))}
+                          </div>
+
+                          <textarea
+                            placeholder="Write optional feedback..."
+                            value={
+                              feedback[report.id] || ""
+                            }
+                            onChange={(event) =>
+                              setFeedback(
+                                (previousFeedback) => ({
+                                  ...previousFeedback,
+                                  [report.id]:
+                                    event.target.value,
+                                })
+                              )
+                            }
+                            rows="3"
+                          ></textarea>
+
+                          <button
+                            type="button"
+                            className="submit-rating-button"
+                            onClick={() =>
+                              handleRating(report.id)
+                            }
+                          >
+                            Submit Rating
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -1004,3 +1004,68 @@ body {
 .collect-button:hover {
   background: #256628;
 }
+
+.rating-section {
+  margin-top: 25px;
+  padding: 20px;
+  background: #f7faf7;
+  border: 1px solid #dce8dd;
+  border-radius: 10px;
+}
+
+.rating-section h3 {
+  margin: 0 0 15px;
+  font-size: 18px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.star {
+  border: none;
+  background: transparent;
+  font-size: 30px;
+  color: #b8b8b8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.star.active {
+  color: #f5b800;
+}
+
+.rating-section textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #dce8dd;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: Arial, Helvetica, sans-serif;
+  margin-bottom: 12px;
+}
+
+.submit-rating-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-rating-button:hover {
+  background: #256628;
+}
+
+.rating-submitted {
+  color: #465246;
+}
+
+.rating-submitted p {
+  margin: 8px 0 0;
+}
