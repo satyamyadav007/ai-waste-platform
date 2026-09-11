@@ -8,6 +8,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import CollectorDashboard from "./pages/CollectorDashboard";
+import Hotspots from "./pages/Hotspots";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function ProtectedDashboard() {
   const loggedInUser = localStorage.getItem("loggedInUser");
@@ -42,6 +44,16 @@ function App() {
         <Route
         path="/collector-dashboard"
         element={<CollectorDashboard />}
+        />
+
+        <Route
+        path="/hotspots"
+        element={<Hotspots />}
+        />
+
+        <Route
+        path="/admin-dashboard"
+        element={<AdminDashboard />}
         />
 
       </Routes>
