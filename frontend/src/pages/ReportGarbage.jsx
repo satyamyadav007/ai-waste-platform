@@ -3,6 +3,7 @@ import { useState } from "react";
 function ReportGarbage() {
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [originalImageData, setOriginalImageData] = useState(null);
 
   const [location, setLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -13,22 +14,120 @@ function ReportGarbage() {
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
 
-  function handleImageChange(event) {
+  const [duplicateResult, setDuplicateResult] = useState(null);
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
+
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const img = new Image();
+
+        img.onload = () => {
+          const maxWidth = 1280;
+          const maxHeight = 1280;
+
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height =
+              (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          if (height > maxHeight) {
+            width =
+              (width * maxHeight) / height;
+            height = maxHeight;
+          }
+
+          const canvas =
+            document.createElement("canvas");
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const context =
+            canvas.getContext("2d");
+
+          context.drawImage(
+            img,
+            0,
+            0,
+            width,
+            height
+          );
+
+          const compressedImage =
+            canvas.toDataURL(
+              "image/jpeg",
+              0.75
+            );
+
+          resolve(compressedImage);
+        };
+
+        img.onerror = reject;
+
+        img.src = event.target.result;
+      };
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleImageChange(event) {
     const file = event.target.files[0];
 
-    if (file) {
+    if (!file) {
+      return;
+    }
+
+    try {
       setImageFile(file);
-      setImage(URL.createObjectURL(file));
+
+      setImage(
+        URL.createObjectURL(file)
+      );
+
+      const compressedImage =
+        await compressImage(file);
+
+      setOriginalImageData(
+        compressedImage
+      );
 
       setAiResult(null);
+      setDuplicateResult(null);
       setGarbageType("");
       setDescription("");
+
+      console.log(
+        "Compressed image ready for storage and AI."
+      );
+
+    } catch (error) {
+      console.error(
+        "Image processing error:",
+        error
+      );
+
+      alert(
+        "Unable to process the selected image."
+      );
     }
   }
 
   async function analyzeWithAI() {
     if (!imageFile) {
-      alert("Please upload a garbage image first.");
+      alert(
+        "Please upload a garbage image first."
+      );
+
       return;
     }
 
@@ -36,83 +135,412 @@ function ReportGarbage() {
     setAiResult(null);
 
     try {
-      const reader = new FileReader();
+      const imageData =
+        originalImageData;
 
-      reader.onloadend = async () => {
-        try {
-          const base64Image = reader.result.split(",")[1];
+      if (!imageData) {
+        alert(
+          "Image is still being processed. Please try again."
+        );
 
-          const response = await fetch(
-            "http://localhost:5000/api/analyze-garbage",
-            {
-              method: "POST",
+        setAiLoading(false);
 
-              headers: {
-                "Content-Type": "application/json",
-              },
+        return;
+      }
 
-              body: JSON.stringify({
-                image: base64Image,
-                mimeType: imageFile.type,
-              }),
-            }
-          );
+      const parts =
+        imageData.split(",");
 
-          const data = await response.json();
+      const base64Image =
+        parts[1];
 
-          console.log("AI result received:", data);
+      const response =
+        await fetch(
+          "http://localhost:5000/api/analyze-garbage",
+          {
+            method: "POST",
 
-          if (!response.ok) {
-            alert(
-              data.message || "AI analysis failed."
-            );
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-            setAiLoading(false);
-            return;
+            body: JSON.stringify({
+              image: base64Image,
+              mimeType:
+                "image/jpeg",
+            }),
           }
+        );
 
-          setAiResult(data);
+      const data =
+        await response.json();
 
-          if (data.garbageDetected) {
-            setGarbageType(data.garbageType);
-          }
+      console.log(
+        "AI result received:",
+        data
+      );
 
-          setDescription(
-            data.description || ""
-          );
+      if (!response.ok) {
+        alert(
+          data.message ||
+            "AI analysis failed."
+        );
 
-          setAiLoading(false);
-        } catch (error) {
-          console.error(
-            "Frontend AI Error:",
-            error
-          );
+        setAiLoading(false);
 
-          alert(
-            "Unable to connect to the AI backend."
-          );
+        return;
+      }
 
-          setAiLoading(false);
-        }
-      };
+      setAiResult(data);
 
-      reader.readAsDataURL(imageFile);
+      if (data.garbageDetected) {
+        setGarbageType(
+          data.garbageType
+        );
+      }
+
+      setDescription(
+        data.description || ""
+      );
+
+      setAiLoading(false);
+
     } catch (error) {
       console.error(
-        "AI Error:",
+        "Frontend AI Error:",
         error
       );
 
       alert(
-        "Something went wrong during AI analysis."
+        "Unable to connect to the AI backend."
       );
 
       setAiLoading(false);
     }
   }
 
+  function calculateDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+  ) {
+    const earthRadius = 6371000;
+
+    const lat1Radians =
+      (lat1 * Math.PI) / 180;
+
+    const lat2Radians =
+      (lat2 * Math.PI) / 180;
+
+    const latDifference =
+      ((lat2 - lat1) * Math.PI) /
+      180;
+
+    const lonDifference =
+      ((lon2 - lon1) * Math.PI) /
+      180;
+
+    const a =
+      Math.sin(
+        latDifference / 2
+      ) *
+        Math.sin(
+          latDifference / 2
+        ) +
+      Math.cos(lat1Radians) *
+        Math.cos(lat2Radians) *
+        Math.sin(
+          lonDifference / 2
+        ) *
+        Math.sin(
+          lonDifference / 2
+        );
+
+    const c =
+      2 *
+      Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+      );
+
+    return (
+      earthRadius * c
+    );
+  }
+
+  function getBase64Parts(
+    dataUrl
+  ) {
+    if (
+      !dataUrl ||
+      typeof dataUrl !== "string"
+    ) {
+      return null;
+    }
+
+    const parts =
+      dataUrl.split(",");
+
+    if (parts.length < 2) {
+      return null;
+    }
+
+    return {
+      data: parts[1],
+
+      mimeType:
+        parts[0]
+          .split(":")[1]
+          .split(";")[0],
+    };
+  }
+
+  async function checkForDuplicate() {
+    console.log(
+      "Starting duplicate complaint check..."
+    );
+
+    if (!originalImageData) {
+      alert(
+        "Please upload an image first."
+      );
+
+      return;
+    }
+
+    if (!location) {
+      alert(
+        "Please detect your location before checking duplicates."
+      );
+
+      return;
+    }
+
+    setDuplicateLoading(true);
+    setDuplicateResult(null);
+
+    try {
+      const allReports =
+        JSON.parse(
+          localStorage.getItem(
+            "garbageReports"
+          )
+        ) || [];
+
+      console.log(
+        "Total stored reports:",
+        allReports.length
+      );
+
+      const nearbyReports =
+        allReports
+          .map((report) => {
+            if (
+              report.latitude ===
+                undefined ||
+              report.longitude ===
+                undefined
+            ) {
+              return null;
+            }
+
+            const distance =
+              calculateDistance(
+                location.latitude,
+                location.longitude,
+                Number(
+                  report.latitude
+                ),
+                Number(
+                  report.longitude
+                )
+              );
+
+            return {
+              ...report,
+              distanceMeters:
+                Math.round(
+                  distance
+                ),
+            };
+          })
+          .filter((report) => {
+            return (
+              report !== null &&
+              report.distanceMeters <=
+                100 &&
+              report.originalImageData
+            );
+          })
+          .sort(
+            (a, b) =>
+              a.distanceMeters -
+              b.distanceMeters
+          )
+          .slice(0, 2);
+
+      console.log(
+        "Nearby usable reports:",
+        nearbyReports.length
+      );
+
+      const currentImage =
+        getBase64Parts(
+          originalImageData
+        );
+
+      if (!currentImage) {
+        alert(
+          "Unable to process the selected image."
+        );
+
+        setDuplicateLoading(
+          false
+        );
+
+        return;
+      }
+
+      if (
+        nearbyReports.length === 0
+      ) {
+        setDuplicateResult({
+          duplicateDetected:
+            false,
+
+          confidence: 100,
+
+          reason:
+            "No nearby previous reports with usable images were found.",
+        });
+
+        setDuplicateLoading(
+          false
+        );
+
+        return;
+      }
+
+      const existingReports =
+        nearbyReports
+          .map((report) => {
+            const previousImage =
+              getBase64Parts(
+                report.originalImageData
+              );
+
+            if (!previousImage) {
+              return null;
+            }
+
+            return {
+              id: report.id,
+
+              distanceMeters:
+                report.distanceMeters,
+
+              garbageType:
+                report.garbageType,
+
+              description:
+                report.description,
+
+              image:
+                previousImage.data,
+
+              mimeType:
+                previousImage.mimeType,
+            };
+          })
+          .filter(
+            (report) =>
+              report !== null
+          );
+
+      console.log(
+        "Sending duplicate check request..."
+      );
+
+      const response =
+        await fetch(
+          "http://localhost:5000/api/check-duplicate",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              currentImage:
+                currentImage.data,
+
+              currentMimeType:
+                currentImage.mimeType,
+
+              existingReports:
+                existingReports,
+            }),
+          }
+        );
+
+      console.log(
+        "Duplicate backend status:",
+        response.status
+      );
+
+      const data =
+        await response.json();
+
+      console.log(
+        "Duplicate result:",
+        data
+      );
+
+      if (!response.ok) {
+        alert(
+          data.message ||
+            "Duplicate check failed."
+        );
+
+        setDuplicateLoading(
+          false
+        );
+
+        return;
+      }
+
+      setDuplicateResult(
+        data
+      );
+
+      setDuplicateLoading(
+        false
+      );
+
+    } catch (error) {
+      console.error(
+        "Duplicate Check Error:",
+        error
+      );
+
+      alert(
+        "Unable to check for duplicate complaints."
+      );
+
+      setDuplicateLoading(
+        false
+      );
+    }
+  }
+
   function getLocation() {
-    if (!navigator.geolocation) {
+    if (
+      !navigator.geolocation
+    ) {
       alert(
         "Geolocation is not supported by your browser."
       );
@@ -125,11 +553,18 @@ function ReportGarbage() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
+          latitude:
+            position.coords.latitude,
+
+          longitude:
+            position.coords.longitude,
         });
 
         setLocationLoading(false);
+
+        setDuplicateResult(
+          null
+        );
       },
 
       () => {
@@ -140,6 +575,88 @@ function ReportGarbage() {
         setLocationLoading(false);
       }
     );
+  }
+
+  function saveReport() {
+    const loggedInUser =
+      JSON.parse(
+        localStorage.getItem(
+          "loggedInUser"
+        )
+      );
+
+    const report = {
+      id: Date.now(),
+
+      image: image,
+
+      originalImageData:
+        originalImageData,
+
+      garbageType:
+        garbageType,
+
+      description:
+        description,
+
+      latitude:
+        location.latitude,
+
+      longitude:
+        location.longitude,
+
+      status: "Pending",
+
+      createdAt:
+        new Date().toISOString(),
+
+      userEmail:
+        loggedInUser.email,
+
+      aiResult:
+        aiResult,
+
+      duplicateCheck:
+        duplicateResult,
+    };
+
+    const existingReports =
+      JSON.parse(
+        localStorage.getItem(
+          "garbageReports"
+        )
+      ) || [];
+
+    existingReports.push(
+      report
+    );
+
+    localStorage.setItem(
+      "garbageReports",
+      JSON.stringify(
+        existingReports
+      )
+    );
+
+    console.log(
+      "Garbage Report:",
+      report
+    );
+
+    alert(
+      "Garbage report submitted successfully!"
+    );
+
+    setImage(null);
+    setImageFile(null);
+    setOriginalImageData(
+      null
+    );
+    setGarbageType("");
+    setDescription("");
+    setLocation(null);
+    setAiResult(null);
+    setDuplicateResult(null);
   }
 
   function handleSubmit(event) {
@@ -177,9 +694,12 @@ function ReportGarbage() {
       return;
     }
 
-    const loggedInUser = JSON.parse(
-      localStorage.getItem("loggedInUser")
-    );
+    const loggedInUser =
+      JSON.parse(
+        localStorage.getItem(
+          "loggedInUser"
+        )
+      );
 
     if (!loggedInUser) {
       alert(
@@ -189,61 +709,30 @@ function ReportGarbage() {
       return;
     }
 
-    const report = {
-      id: Date.now(),
+    if (
+      duplicateResult &&
+      duplicateResult.duplicateDetected
+    ) {
+      const submitAnyway =
+        window.confirm(
+          `A possible duplicate complaint was detected.\n\n${duplicateResult.reason}\n\nDo you still want to submit this report?`
+        );
 
-      image: image,
+      if (!submitAnyway) {
+        return;
+      }
+    }
 
-      garbageType: garbageType,
-
-      description: description,
-
-      latitude: location.latitude,
-
-      longitude: location.longitude,
-
-      status: "Pending",
-
-      createdAt: new Date().toISOString(),
-
-      userEmail: loggedInUser.email,
-
-      aiResult: aiResult,
-    };
-
-    const existingReports =
-      JSON.parse(
-        localStorage.getItem("garbageReports")
-      ) || [];
-
-    existingReports.push(report);
-
-    localStorage.setItem(
-      "garbageReports",
-      JSON.stringify(existingReports)
-    );
-
-    console.log(
-      "Garbage Report:",
-      report
-    );
-
-    alert(
-      "Garbage report submitted successfully!"
-    );
-
-    setImage(null);
-    setImageFile(null);
-    setGarbageType("");
-    setDescription("");
-    setLocation(null);
-    setAiResult(null);
+    saveReport();
   }
 
   return (
     <div className="report-page">
+
       <div className="report-container">
+
         <div className="report-heading">
+
           <p className="section-tag">
             REPORT GARBAGE
           </p>
@@ -253,18 +742,23 @@ function ReportGarbage() {
           </h1>
 
           <p>
-            Help keep your neighbourhood clean by
-            reporting garbage that needs attention.
+            Help keep your neighbourhood clean
+            by reporting garbage that needs
+            attention.
           </p>
+
         </div>
 
         <div className="report-form">
+
           <div className="form-group">
+
             <label>
               Garbage Image
             </label>
 
             <label className="image-upload">
+
               {image ? (
                 <img
                   src={image}
@@ -289,19 +783,29 @@ function ReportGarbage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleImageChange}
+                onChange={
+                  handleImageChange
+                }
                 hidden
               />
+
             </label>
+
           </div>
+
 
           {image && (
             <div className="ai-analysis-box">
+
               <button
                 type="button"
                 className="ai-analyze-button"
-                onClick={analyzeWithAI}
-                disabled={aiLoading}
+                onClick={
+                  analyzeWithAI
+                }
+                disabled={
+                  aiLoading
+                }
               >
                 {aiLoading
                   ? "🤖 AI is analyzing..."
@@ -310,6 +814,7 @@ function ReportGarbage() {
 
               {aiResult && (
                 <div className="ai-result">
+
                   <h3>
                     🤖 AI Analysis Result
                   </h3>
@@ -327,48 +832,63 @@ function ReportGarbage() {
                     <strong>
                       Garbage Type:
                     </strong>{" "}
-                    {aiResult.garbageType}
+                    {
+                      aiResult.garbageType
+                    }
                   </p>
 
                   <p>
                     <strong>
                       Confidence:
                     </strong>{" "}
-                    {aiResult.confidence}%
+                    {
+                      aiResult.confidence
+                    }%
                   </p>
 
                   <p>
                     <strong>
                       Severity:
                     </strong>{" "}
-                    {aiResult.severity}
+                    {
+                      aiResult.severity
+                    }
                   </p>
 
                   <p>
                     <strong>
                       Description:
                     </strong>{" "}
-                    {aiResult.description}
+                    {
+                      aiResult.description
+                    }
                   </p>
+
                 </div>
               )}
+
             </div>
           )}
 
+
           <div className="form-group">
+
             <label htmlFor="garbage-type">
               Garbage Type
             </label>
 
             <select
               id="garbage-type"
-              value={garbageType}
+              value={
+                garbageType
+              }
               onChange={(event) =>
                 setGarbageType(
                   event.target.value
                 )
               }
             >
+
               <option value="">
                 Select garbage type
               </option>
@@ -396,10 +916,14 @@ function ReportGarbage() {
               <option value="Other">
                 Other
               </option>
+
             </select>
+
           </div>
 
+
           <div className="form-group">
+
             <label htmlFor="description">
               Description
             </label>
@@ -408,16 +932,21 @@ function ReportGarbage() {
               id="description"
               placeholder="Describe the garbage problem..."
               rows="5"
-              value={description}
+              value={
+                description
+              }
               onChange={(event) =>
                 setDescription(
                   event.target.value
                 )
               }
             ></textarea>
+
           </div>
 
+
           <div className="form-group">
+
             <label>
               Location
             </label>
@@ -425,7 +954,9 @@ function ReportGarbage() {
             <button
               type="button"
               className="location-button"
-              onClick={getLocation}
+              onClick={
+                getLocation
+              }
             >
               {locationLoading
                 ? "Getting your location..."
@@ -434,37 +965,117 @@ function ReportGarbage() {
 
             {location && (
               <div className="location-result">
+
                 <strong>
                   📍 Location detected
                 </strong>
 
                 <p>
                   Latitude:{" "}
-                  {location.latitude}
+                  {
+                    location.latitude
+                  }
                 </p>
 
                 <p>
                   Longitude:{" "}
-                  {location.longitude}
+                  {
+                    location.longitude
+                  }
                 </p>
+
               </div>
             )}
 
             <p className="location-note">
-              Your location will help the waste
-              collector find the garbage.
+              Your location will help the
+              waste collector find the garbage.
             </p>
+
           </div>
+
+
+          {image && location && (
+            <div className="duplicate-check-box">
+
+              <h3>
+                🔍 Duplicate Complaint Check
+              </h3>
+
+              <p>
+                Check whether a similar garbage
+                complaint already exists nearby.
+              </p>
+
+              <button
+                type="button"
+                className="ai-analyze-button"
+                onClick={
+                  checkForDuplicate
+                }
+                disabled={
+                  duplicateLoading
+                }
+              >
+                {duplicateLoading
+                  ? "🤖 Checking..."
+                  : "🔍 Check for Duplicate"}
+              </button>
+
+              {duplicateResult && (
+                <div
+                  className={
+                    duplicateResult.duplicateDetected
+                      ? "duplicate-result duplicate-found"
+                      : "duplicate-result duplicate-clear"
+                  }
+                >
+
+                  <h3>
+                    {duplicateResult.duplicateDetected
+                      ? "⚠️ Possible Duplicate Found"
+                      : "✅ No Duplicate Detected"}
+                  </h3>
+
+                  <p>
+                    <strong>
+                      Confidence:
+                    </strong>{" "}
+                    {
+                      duplicateResult.confidence
+                    }%
+                  </p>
+
+                  <p>
+                    <strong>
+                      AI Explanation:
+                    </strong>{" "}
+                    {
+                      duplicateResult.reason
+                    }
+                  </p>
+
+                </div>
+              )}
+
+            </div>
+          )}
+
 
           <button
             type="button"
             className="submit-report"
-            onClick={handleSubmit}
+            onClick={
+              handleSubmit
+            }
           >
             Submit Report
           </button>
+
         </div>
+
       </div>
+
     </div>
   );
 }
