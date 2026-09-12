@@ -207,6 +207,43 @@ app.post(
   }
 );
 
+// --------------------------------------------------
+// GET ALL GARBAGE REPORTS FROM MONGODB
+// --------------------------------------------------
+
+app.get(
+  "/api/reports",
+  async (req, res) => {
+    try {
+      const reports =
+        await GarbageReport.find()
+          .sort({ createdAt: -1 });
+
+      console.log(
+        "Reports fetched from MongoDB:",
+        reports.length
+      );
+
+      res.status(200).json(
+        reports
+      );
+
+    } catch (error) {
+      console.error(
+        "Error fetching garbage reports:",
+        error
+      );
+
+      res.status(500).json({
+        message:
+          "Failed to fetch garbage reports.",
+
+        error:
+          error.message,
+      });
+    }
+  }
+);
 
 // --------------------------------------------------
 // AI GARBAGE DETECTION

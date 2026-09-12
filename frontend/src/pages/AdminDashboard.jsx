@@ -1,58 +1,266 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReportMap from "../components/ReportMap";
 
 function AdminDashboard() {
-  const [reports] = useState(() => {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+
+  // --------------------------------------------------
+  // FETCH REPORTS FROM MONGODB
+  // --------------------------------------------------
+
+  useEffect(() => {
+    async function fetchReports() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          "http://localhost:5000/api/reports"
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Failed to fetch reports."
+          );
+        }
+
+
+        // --------------------------------------------------
+        // NORMALIZE MONGODB REPORTS
+        // MongoDB uses reportId, while the old frontend
+        // used id.
+        // --------------------------------------------------
+
+        const normalizedReports =
+          data.map((report) => ({
+            ...report,
+
+            id:
+              report.reportId ||
+              report._id,
+          }));
+
+
+        setReports(
+          normalizedReports
+        );
+
+
+        // --------------------------------------------------
+        // TEMPORARY COMPATIBILITY
+        // ReportMap currently reads localStorage.
+        // Keep it synchronized with MongoDB data.
+        // --------------------------------------------------
+
+        localStorage.setItem(
+          "garbageReports",
+          JSON.stringify(
+            normalizedReports
+          )
+        );
+
+
+        console.log(
+          "Reports loaded from MongoDB:",
+          normalizedReports.length
+        );
+
+      } catch (error) {
+        console.error(
+          "Admin reports fetch error:",
+          error
+        );
+
+        setError(
+          "Unable to load reports from MongoDB."
+        );
+
+      } finally {
+        setLoading(false);
+      }
+    }
+
+
+    fetchReports();
+  }, []);
+
+
+  // --------------------------------------------------
+  // LOADING STATE
+  // --------------------------------------------------
+
+  if (loading) {
     return (
-      JSON.parse(
-        localStorage.getItem("garbageReports")
-      ) || []
+      <div className="dashboard-page">
+
+        <div className="dashboard-header">
+
+          <div>
+
+            <p className="dashboard-tag">
+              ADMIN PORTAL
+            </p>
+
+            <h1>
+              Admin Dashboard
+            </h1>
+
+            <p>
+              Loading reports from MongoDB...
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="empty-reports">
+
+          <div className="empty-icon">
+            📊
+          </div>
+
+          <h3>
+            Loading Dashboard
+          </h3>
+
+          <p>
+            Please wait while the reports
+            are being loaded.
+          </p>
+
+        </div>
+
+      </div>
     );
-  });
+  }
 
-  const totalReports = reports.length;
 
-  const pendingReports = reports.filter(
-    (report) => report.status === "Pending"
-  ).length;
+  // --------------------------------------------------
+  // ERROR STATE
+  // --------------------------------------------------
 
-  const collectedReports = reports.filter(
-    (report) =>
-      report.status === "Collected" ||
-      report.status === "Resolved"
-  ).length;
+  if (error) {
+    return (
+      <div className="dashboard-page">
 
-  const highPriorityReports = reports.filter(
-    (report) =>
-      report.aiResult &&
-      report.aiResult.severity === "High" &&
-      report.status === "Pending"
-  ).length;
+        <div className="dashboard-header">
 
-  const mediumPriorityReports = reports.filter(
-    (report) =>
-      report.aiResult &&
-      report.aiResult.severity === "Medium" &&
-      report.status === "Pending"
-  ).length;
+          <div>
 
-  const lowPriorityReports = reports.filter(
-    (report) =>
-      report.aiResult &&
-      report.aiResult.severity === "Low" &&
-      report.status === "Pending"
-  ).length;
+            <p className="dashboard-tag">
+              ADMIN PORTAL
+            </p>
 
-  const ratedReports = reports.filter(
-    (report) => report.rating
-  );
+            <h1>
+              Admin Dashboard
+            </h1>
+
+            <p>
+              Monitor garbage reports, collection
+              activity and AI-powered insights.
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="empty-reports">
+
+          <div className="empty-icon">
+            ⚠️
+          </div>
+
+          <h3>
+            Unable to Load Reports
+          </h3>
+
+          <p>
+            {error}
+          </p>
+
+          <p>
+            Make sure the backend server is running.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  // --------------------------------------------------
+  // ADMIN STATISTICS
+  // --------------------------------------------------
+
+  const totalReports =
+    reports.length;
+
+
+  const pendingReports =
+    reports.filter(
+      (report) =>
+        report.status === "Pending"
+    ).length;
+
+
+  const collectedReports =
+    reports.filter(
+      (report) =>
+        report.status === "Collected" ||
+        report.status === "Resolved"
+    ).length;
+
+
+  const highPriorityReports =
+    reports.filter(
+      (report) =>
+        report.aiResult &&
+        report.aiResult.severity === "High" &&
+        report.status === "Pending"
+    ).length;
+
+
+  const mediumPriorityReports =
+    reports.filter(
+      (report) =>
+        report.aiResult &&
+        report.aiResult.severity === "Medium" &&
+        report.status === "Pending"
+    ).length;
+
+
+  const lowPriorityReports =
+    reports.filter(
+      (report) =>
+        report.aiResult &&
+        report.aiResult.severity === "Low" &&
+        report.status === "Pending"
+    ).length;
+
+
+  const ratedReports =
+    reports.filter(
+      (report) =>
+        report.rating !== null &&
+        report.rating !== undefined
+    );
+
 
   const averageRating =
     ratedReports.length > 0
       ? (
           ratedReports.reduce(
             (total, report) =>
-              total + Number(report.rating),
+              total +
+              Number(report.rating),
             0
           ) / ratedReports.length
         ).toFixed(1)
@@ -69,7 +277,8 @@ function AdminDashboard() {
     lat2,
     lon2
   ) {
-    const earthRadius = 6371000;
+    const earthRadius =
+      6371000;
 
     const lat1Radians =
       (lat1 * Math.PI) / 180;
@@ -78,18 +287,34 @@ function AdminDashboard() {
       (lat2 * Math.PI) / 180;
 
     const latDifference =
-      ((lat2 - lat1) * Math.PI) / 180;
+      ((lat2 - lat1) *
+        Math.PI) /
+      180;
 
     const lonDifference =
-      ((lon2 - lon1) * Math.PI) / 180;
+      ((lon2 - lon1) *
+        Math.PI) /
+      180;
 
     const a =
-      Math.sin(latDifference / 2) *
-        Math.sin(latDifference / 2) +
-      Math.cos(lat1Radians) *
-        Math.cos(lat2Radians) *
-        Math.sin(lonDifference / 2) *
-        Math.sin(lonDifference / 2);
+      Math.sin(
+        latDifference / 2
+      ) *
+        Math.sin(
+          latDifference / 2
+        ) +
+      Math.cos(
+        lat1Radians
+      ) *
+        Math.cos(
+          lat2Radians
+        ) *
+        Math.sin(
+          lonDifference / 2
+        ) *
+        Math.sin(
+          lonDifference / 2
+        );
 
     const c =
       2 *
@@ -98,81 +323,127 @@ function AdminDashboard() {
         Math.sqrt(1 - a)
       );
 
-    return earthRadius * c;
+    return (
+      earthRadius * c
+    );
   }
 
 
   // --------------------------------------------------
-  // FIND BASIC HOTSPOTS
+  // FIND HOTSPOTS
   // --------------------------------------------------
 
   function findHotspots() {
     const hotspots = [];
-    const usedReports = new Set();
+    const usedReports =
+      new Set();
 
-    reports.forEach((report) => {
-      if (
-        report.latitude === undefined ||
-        report.longitude === undefined
-      ) {
-        return;
-      }
+    reports.forEach(
+      (report) => {
 
-      if (usedReports.has(report.id)) {
-        return;
-      }
-
-      const nearbyReports = reports.filter(
-        (otherReport) => {
-          if (
-            otherReport.latitude === undefined ||
-            otherReport.longitude === undefined
-          ) {
-            return false;
-          }
-
-          const distance =
-            calculateDistance(
-              Number(report.latitude),
-              Number(report.longitude),
-              Number(otherReport.latitude),
-              Number(otherReport.longitude)
-            );
-
-          return distance <= 100;
+        if (
+          report.latitude ===
+            undefined ||
+          report.longitude ===
+            undefined
+        ) {
+          return;
         }
-      );
 
-      if (nearbyReports.length >= 3) {
-        nearbyReports.forEach(
-          (nearbyReport) => {
-            usedReports.add(
-              nearbyReport.id
-            );
-          }
-        );
 
-        hotspots.push({
-          id: report.id,
-          reports: nearbyReports,
-          reportCount:
-            nearbyReports.length,
-        });
+        if (
+          usedReports.has(
+            report.id
+          )
+        ) {
+          return;
+        }
+
+
+        const nearbyReports =
+          reports.filter(
+            (otherReport) => {
+
+              if (
+                otherReport.latitude ===
+                  undefined ||
+                otherReport.longitude ===
+                  undefined
+              ) {
+                return false;
+              }
+
+
+              const distance =
+                calculateDistance(
+                  Number(
+                    report.latitude
+                  ),
+                  Number(
+                    report.longitude
+                  ),
+                  Number(
+                    otherReport.latitude
+                  ),
+                  Number(
+                    otherReport.longitude
+                  )
+                );
+
+
+              return (
+                distance <= 100
+              );
+            }
+          );
+
+
+        if (
+          nearbyReports.length >=
+          3
+        ) {
+
+          nearbyReports.forEach(
+            (nearbyReport) => {
+              usedReports.add(
+                nearbyReport.id
+              );
+            }
+          );
+
+
+          hotspots.push({
+
+            id:
+              report.id,
+
+            reports:
+              nearbyReports,
+
+            reportCount:
+              nearbyReports.length,
+
+          });
+
+        }
+
       }
-    });
+    );
+
 
     return hotspots;
   }
 
 
   // --------------------------------------------------
-  // HOTSPOT INTELLIGENCE
+  // HOTSPOT RISK
   // --------------------------------------------------
 
   function getHotspotRisk(
     reportCount,
     highPriorityCount
   ) {
+
     if (
       reportCount >= 5 ||
       highPriorityCount >= 2
@@ -180,53 +451,93 @@ function AdminDashboard() {
       return "High";
     }
 
-    if (reportCount >= 3) {
+
+    if (
+      reportCount >= 3
+    ) {
       return "Medium";
     }
+
 
     return "Low";
   }
 
 
+  // --------------------------------------------------
+  // MOST COMMON GARBAGE
+  // --------------------------------------------------
+
   function getMostCommonGarbage(
     hotspotReports
   ) {
-    const garbageCounts = {};
+
+    const garbageCounts =
+      {};
+
 
     hotspotReports.forEach(
       (report) => {
+
         const garbageType =
           report.garbageType ||
           "Unknown";
 
-        garbageCounts[garbageType] =
-          (garbageCounts[garbageType] || 0) + 1;
+
+        garbageCounts[
+          garbageType
+        ] =
+          (
+            garbageCounts[
+              garbageType
+            ] || 0
+          ) + 1;
+
       }
     );
+
 
     let mostCommon =
       "Unknown";
 
-    let highestCount = 0;
+    let highestCount =
+      0;
+
 
     Object.entries(
       garbageCounts
     ).forEach(
       ([garbageType, count]) => {
-        if (count > highestCount) {
-          highestCount = count;
-          mostCommon = garbageType;
+
+        if (
+          count >
+          highestCount
+        ) {
+
+          highestCount =
+            count;
+
+          mostCommon =
+            garbageType;
         }
+
       }
     );
+
 
     return mostCommon;
   }
 
 
+  // --------------------------------------------------
+  // HOTSPOT INTELLIGENCE
+  // --------------------------------------------------
+
   const hotspotData =
     findHotspots().map(
-      (hotspot, index) => {
+      (
+        hotspot,
+        index
+      ) => {
 
         const highPriorityCount =
           hotspot.reports.filter(
@@ -234,22 +545,28 @@ function AdminDashboard() {
               report.aiResult &&
               report.aiResult.severity ===
                 "High" &&
-              report.status === "Pending"
+              report.status ===
+                "Pending"
           ).length;
+
 
         const pendingCount =
           hotspot.reports.filter(
             (report) =>
-              report.status === "Pending"
+              report.status ===
+              "Pending"
           ).length;
+
 
         const collectedCount =
           hotspot.reports.filter(
             (report) =>
               report.status ===
                 "Collected" ||
-              report.status === "Resolved"
+              report.status ===
+                "Resolved"
           ).length;
+
 
         const riskLevel =
           getHotspotRisk(
@@ -257,18 +574,24 @@ function AdminDashboard() {
             highPriorityCount
           );
 
+
         const commonGarbage =
           getMostCommonGarbage(
             hotspot.reports
           );
 
+
         const firstReport =
           hotspot.reports[0];
 
-        return {
-          number: index + 1,
 
-          id: hotspot.id,
+        return {
+
+          number:
+            index + 1,
+
+          id:
+            hotspot.id,
 
           reportCount:
             hotspot.reportCount,
@@ -291,7 +614,9 @@ function AdminDashboard() {
 
           reports:
             hotspot.reports,
+
         };
+
       }
     );
 
@@ -302,6 +627,7 @@ function AdminDashboard() {
 
   return (
     <div className="dashboard-page">
+
 
       {/* --------------------------------------------------
           HEADER
@@ -469,6 +795,9 @@ function AdminDashboard() {
 
       <div className="admin-overview">
 
+
+        {/* PRIORITY */}
+
         <div className="overview-card">
 
           <div className="overview-header">
@@ -493,6 +822,7 @@ function AdminDashboard() {
 
 
           <div className="priority-overview-grid">
+
 
             <div className="priority-overview-item high">
 
@@ -573,6 +903,8 @@ function AdminDashboard() {
         </div>
 
 
+        {/* COLLECTION */}
+
         <div className="overview-card">
 
           <div className="overview-header">
@@ -597,6 +929,7 @@ function AdminDashboard() {
 
 
           <div className="collection-overview">
+
 
             <div className="collection-overview-item">
 
@@ -646,6 +979,7 @@ function AdminDashboard() {
               </div>
 
             </div>
+
 
           </div>
 
@@ -708,6 +1042,7 @@ function AdminDashboard() {
 
                     </div>
 
+
                     <span
                       className={`hotspot-risk-badge ${hotspot.riskLevel.toLowerCase()}`}
                     >
@@ -731,6 +1066,7 @@ function AdminDashboard() {
 
 
                   <div className="hotspot-details-grid">
+
 
                     <div>
 
@@ -798,6 +1134,7 @@ function AdminDashboard() {
                       </strong>
 
                     </div>
+
 
                   </div>
 
@@ -874,7 +1211,9 @@ function AdminDashboard() {
         </div>
 
 
-        <ReportMap showFilters={true} />
+        <ReportMap
+          showFilters={true}
+        />
 
       </div>
 
@@ -906,165 +1245,209 @@ function AdminDashboard() {
 
           <div className="reports-list">
 
-            {[...reports]
-              .reverse()
+            {reports
               .slice(0, 5)
-              .map((report) => (
+              .map(
+                (report) => (
 
-                <div
-                  className="report-card"
-                  key={report.id}
-                >
-
-                  <div className="report-card-image">
-
-                    <img
-                      src={report.image}
-                      alt="Reported garbage"
-                    />
-
-                  </div>
+                  <div
+                    className="report-card"
+                    key={
+                      report.id
+                    }
+                  >
 
 
-                  <div className="report-card-content">
+                    <div className="report-card-image">
 
-                    <div className="report-card-header">
-
-                      <div>
-
-                        <p className="report-id">
-                          Report #{report.id}
-                        </p>
-
-                        <h3>
-                          {report.garbageType}
-                        </h3>
-
-                      </div>
-
-
-                      <span className="report-status">
-                        {report.status}
-                      </span>
+                      <img
+                        src={
+                          report.image
+                        }
+                        alt="Reported garbage"
+                      />
 
                     </div>
 
 
-                    <p className="report-description">
-                      {report.description}
-                    </p>
+                    <div className="report-card-content">
 
+                      <div className="report-card-header">
 
-                    {report.aiResult && (
+                        <div>
 
-                      <div className="collector-ai-box">
-
-                        <div className="collector-ai-header">
+                          <p className="report-id">
+                            Report #{report.id}
+                          </p>
 
                           <h3>
-                            🤖 AI Analysis
+                            {
+                              report.garbageType
+                            }
                           </h3>
-
-                          <span className="ai-priority">
-                            {report.aiResult.severity} Priority
-                          </span>
 
                         </div>
 
 
-                        <p>
-                          <strong>
-                            Garbage Detected:
-                          </strong>{" "}
+                        <span className="report-status">
+                          {
+                            report.status
+                          }
+                        </span>
 
-                          {report.aiResult
-                            .garbageDetected
-                            ? "Yes"
-                            : "No"}
+                      </div>
+
+
+                      <p className="report-description">
+                        {
+                          report.description
+                        }
+                      </p>
+
+
+                      {report.aiResult && (
+
+                        <div className="collector-ai-box">
+
+                          <div className="collector-ai-header">
+
+                            <h3>
+                              🤖 AI Analysis
+                            </h3>
+
+                            <span className="ai-priority">
+                              {
+                                report
+                                  .aiResult
+                                  .severity
+                              } Priority
+                            </span>
+
+                          </div>
+
+
+                          <p>
+
+                            <strong>
+                              Garbage Detected:
+                            </strong>{" "}
+
+                            {
+                              report
+                                .aiResult
+                                .garbageDetected
+                                ? "Yes"
+                                : "No"
+                            }
+
+                          </p>
+
+
+                          <p>
+
+                            <strong>
+                              Confidence:
+                            </strong>{" "}
+
+                            {
+                              report
+                                .aiResult
+                                .confidence
+                            }%
+
+                          </p>
+
+
+                          <p>
+
+                            <strong>
+                              Severity:
+                            </strong>{" "}
+
+                            {
+                              report
+                                .aiResult
+                                .severity
+                            }
+
+                          </p>
+
+                        </div>
+
+                      )}
+
+
+                      <div className="report-location">
+
+                        <strong>
+                          📍 Location
+                        </strong>
+
+
+                        <p>
+                          Latitude:{" "}
+                          {
+                            report.latitude
+                          }
                         </p>
 
 
                         <p>
-                          <strong>
-                            Confidence:
-                          </strong>{" "}
-
-                          {report.aiResult.confidence}%
-                        </p>
-
-
-                        <p>
-                          <strong>
-                            Severity:
-                          </strong>{" "}
-
-                          {report.aiResult.severity}
+                          Longitude:{" "}
+                          {
+                            report.longitude
+                          }
                         </p>
 
                       </div>
 
-                    )}
 
+                      <p className="report-date">
 
-                    <div className="report-location">
+                        📅 Submitted:{" "}
 
-                      <strong>
-                        📍 Location
-                      </strong>
+                        {new Date(
+                          report.createdAt
+                        ).toLocaleString()}
 
-                      <p>
-                        Latitude:{" "}
-                        {report.latitude}
                       </p>
 
-                      <p>
-                        Longitude:{" "}
-                        {report.longitude}
-                      </p>
+
+                      {report.rating && (
+
+                        <div className="admin-rating">
+
+                          <strong>
+                            ⭐ Citizen Rating:
+                          </strong>{" "}
+
+                          {
+                            report.rating
+                          }/5
+
+
+                          {report.feedback && (
+
+                            <p>
+                              Feedback:{" "}
+
+                              {
+                                report.feedback
+                              }
+                            </p>
+
+                          )}
+
+                        </div>
+
+                      )}
 
                     </div>
 
-
-                    <p className="report-date">
-
-                      📅 Submitted:{" "}
-
-                      {new Date(
-                        report.createdAt
-                      ).toLocaleString()}
-
-                    </p>
-
-
-                    {report.rating && (
-
-                      <div className="admin-rating">
-
-                        <strong>
-                          ⭐ Citizen Rating:
-                        </strong>{" "}
-
-                        {report.rating}/5
-
-                        {report.feedback && (
-
-                          <p>
-                            Feedback:{" "}
-
-                            {report.feedback}
-                          </p>
-
-                        )}
-
-                      </div>
-
-                    )}
-
                   </div>
 
-                </div>
-
-              ))}
+                )
+              )}
 
           </div>
 
