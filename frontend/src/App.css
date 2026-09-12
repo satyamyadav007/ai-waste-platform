@@ -1818,3 +1818,143 @@ body {
   }
 
 }
+
+/* --------------------------------------------------
+   HOTSPOT INTELLIGENCE
+-------------------------------------------------- */
+
+.hotspot-intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(300px, 1fr)
+  );
+  gap: 20px;
+}
+
+.hotspot-intelligence-card {
+  background: white;
+  border: 1px solid #dce8dd;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.hotspot-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.hotspot-card-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: #536453;
+}
+
+.hotspot-card-header h3 {
+  margin: 6px 0 0;
+  font-size: 22px;
+}
+
+.hotspot-risk-badge {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hotspot-risk-badge.high {
+  background: #fde6e6;
+  color: #c62828;
+}
+
+.hotspot-risk-badge.medium {
+  background: #fff1db;
+  color: #d97706;
+}
+
+.hotspot-risk-badge.low {
+  background: #e5f5e8;
+  color: #2e7d32;
+}
+
+.hotspot-main-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 16px;
+  margin-bottom: 18px;
+  background: #f7faf7;
+  border-radius: 10px;
+}
+
+.hotspot-main-count strong {
+  font-size: 34px;
+}
+
+.hotspot-main-count span {
+  color: #667066;
+  font-size: 13px;
+}
+
+.hotspot-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.hotspot-details-grid > div {
+  padding: 14px;
+  background: #f7faf7;
+  border-radius: 10px;
+}
+
+.hotspot-details-grid span {
+  font-size: 18px;
+}
+
+.hotspot-details-grid p {
+  margin: 6px 0 3px;
+  font-size: 12px;
+  color: #667066;
+}
+
+.hotspot-details-grid strong {
+  font-size: 17px;
+}
+
+.hotspot-location {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e3ebe4;
+}
+
+.hotspot-location strong {
+  font-size: 13px;
+}
+
+.hotspot-location p {
+  margin: 6px 0 0;
+  color: #667066;
+  font-size: 13px;
+}
+
+
+/* --------------------------------------------------
+   HOTSPOT MOBILE
+-------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+  .hotspot-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hotspot-card-header {
+    flex-direction: column;
+  }
+
+}

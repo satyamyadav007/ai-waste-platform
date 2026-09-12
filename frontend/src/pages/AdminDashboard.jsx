@@ -58,6 +58,11 @@ function AdminDashboard() {
         ).toFixed(1)
       : "0.0";
 
+
+  // --------------------------------------------------
+  // DISTANCE CALCULATION
+  // --------------------------------------------------
+
   function calculateDistance(
     lat1,
     lon1,
@@ -95,6 +100,11 @@ function AdminDashboard() {
 
     return earthRadius * c;
   }
+
+
+  // --------------------------------------------------
+  // FIND BASIC HOTSPOTS
+  // --------------------------------------------------
 
   function findHotspots() {
     const hotspots = [];
@@ -144,6 +154,7 @@ function AdminDashboard() {
 
         hotspots.push({
           id: report.id,
+          reports: nearbyReports,
           reportCount:
             nearbyReports.length,
         });
@@ -153,15 +164,153 @@ function AdminDashboard() {
     return hotspots;
   }
 
+
+  // --------------------------------------------------
+  // HOTSPOT INTELLIGENCE
+  // --------------------------------------------------
+
+  function getHotspotRisk(
+    reportCount,
+    highPriorityCount
+  ) {
+    if (
+      reportCount >= 5 ||
+      highPriorityCount >= 2
+    ) {
+      return "High";
+    }
+
+    if (reportCount >= 3) {
+      return "Medium";
+    }
+
+    return "Low";
+  }
+
+
+  function getMostCommonGarbage(
+    hotspotReports
+  ) {
+    const garbageCounts = {};
+
+    hotspotReports.forEach(
+      (report) => {
+        const garbageType =
+          report.garbageType ||
+          "Unknown";
+
+        garbageCounts[garbageType] =
+          (garbageCounts[garbageType] || 0) + 1;
+      }
+    );
+
+    let mostCommon =
+      "Unknown";
+
+    let highestCount = 0;
+
+    Object.entries(
+      garbageCounts
+    ).forEach(
+      ([garbageType, count]) => {
+        if (count > highestCount) {
+          highestCount = count;
+          mostCommon = garbageType;
+        }
+      }
+    );
+
+    return mostCommon;
+  }
+
+
+  const hotspotData =
+    findHotspots().map(
+      (hotspot, index) => {
+
+        const highPriorityCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.aiResult &&
+              report.aiResult.severity ===
+                "High" &&
+              report.status === "Pending"
+          ).length;
+
+        const pendingCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.status === "Pending"
+          ).length;
+
+        const collectedCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.status ===
+                "Collected" ||
+              report.status === "Resolved"
+          ).length;
+
+        const riskLevel =
+          getHotspotRisk(
+            hotspot.reportCount,
+            highPriorityCount
+          );
+
+        const commonGarbage =
+          getMostCommonGarbage(
+            hotspot.reports
+          );
+
+        const firstReport =
+          hotspot.reports[0];
+
+        return {
+          number: index + 1,
+
+          id: hotspot.id,
+
+          reportCount:
+            hotspot.reportCount,
+
+          highPriorityCount,
+
+          pendingCount,
+
+          collectedCount,
+
+          riskLevel,
+
+          commonGarbage,
+
+          latitude:
+            firstReport.latitude,
+
+          longitude:
+            firstReport.longitude,
+
+          reports:
+            hotspot.reports,
+        };
+      }
+    );
+
+
   const hotspotCount =
-    findHotspots().length;
+    hotspotData.length;
+
 
   return (
     <div className="dashboard-page">
 
+      {/* --------------------------------------------------
+          HEADER
+      -------------------------------------------------- */}
+
       <div className="dashboard-header">
 
         <div>
+
           <p className="dashboard-tag">
             ADMIN PORTAL
           </p>
@@ -174,108 +323,149 @@ function AdminDashboard() {
             Monitor garbage reports, collection
             activity and AI-powered insights.
           </p>
+
         </div>
 
       </div>
 
 
-      {/* ADMIN STATISTICS */}
+      {/* --------------------------------------------------
+          ADMIN STATISTICS
+      -------------------------------------------------- */}
 
       <div className="admin-stats">
 
         <div className="stat-card">
+
           <span className="stat-icon">
             📋
           </span>
 
           <div>
-            <p>Total Reports</p>
+
+            <p>
+              Total Reports
+            </p>
 
             <h2>
               {totalReports}
             </h2>
+
           </div>
+
         </div>
 
 
         <div className="stat-card">
+
           <span className="stat-icon">
             ⏳
           </span>
 
           <div>
-            <p>Pending Reports</p>
+
+            <p>
+              Pending Reports
+            </p>
 
             <h2>
               {pendingReports}
             </h2>
+
           </div>
+
         </div>
 
 
         <div className="stat-card">
+
           <span className="stat-icon">
             ✅
           </span>
 
           <div>
-            <p>Collected Reports</p>
+
+            <p>
+              Collected Reports
+            </p>
 
             <h2>
               {collectedReports}
             </h2>
+
           </div>
+
         </div>
 
 
         <div className="stat-card">
+
           <span className="stat-icon">
             🚨
           </span>
 
           <div>
-            <p>High Priority</p>
+
+            <p>
+              High Priority
+            </p>
 
             <h2>
               {highPriorityReports}
             </h2>
+
           </div>
+
         </div>
 
 
         <div className="stat-card">
+
           <span className="stat-icon">
             🔥
           </span>
 
           <div>
-            <p>Hotspots</p>
+
+            <p>
+              Hotspots
+            </p>
 
             <h2>
               {hotspotCount}
             </h2>
+
           </div>
+
         </div>
 
 
         <div className="stat-card">
+
           <span className="stat-icon">
             ⭐
           </span>
 
           <div>
-            <p>Average Rating</p>
+
+            <p>
+              Average Rating
+            </p>
 
             <h2>
               {averageRating}
             </h2>
+
           </div>
+
         </div>
 
       </div>
 
 
-      {/* PRIORITY OVERVIEW */}
+      {/* --------------------------------------------------
+          PRIORITY + COLLECTION OVERVIEW
+      -------------------------------------------------- */}
 
       <div className="admin-overview">
 
@@ -284,6 +474,7 @@ function AdminDashboard() {
           <div className="overview-header">
 
             <div>
+
               <p className="dashboard-tag">
                 AI PRIORITY
               </p>
@@ -291,6 +482,7 @@ function AdminDashboard() {
               <h2>
                 Priority Overview
               </h2>
+
             </div>
 
             <span className="overview-icon">
@@ -309,6 +501,7 @@ function AdminDashboard() {
               </div>
 
               <div>
+
                 <p>
                   High Priority
                 </p>
@@ -320,6 +513,7 @@ function AdminDashboard() {
                 <span>
                   Pending reports
                 </span>
+
               </div>
 
             </div>
@@ -332,6 +526,7 @@ function AdminDashboard() {
               </div>
 
               <div>
+
                 <p>
                   Medium Priority
                 </p>
@@ -343,6 +538,7 @@ function AdminDashboard() {
                 <span>
                   Pending reports
                 </span>
+
               </div>
 
             </div>
@@ -355,6 +551,7 @@ function AdminDashboard() {
               </div>
 
               <div>
+
                 <p>
                   Low Priority
                 </p>
@@ -366,6 +563,7 @@ function AdminDashboard() {
                 <span>
                   Pending reports
                 </span>
+
               </div>
 
             </div>
@@ -380,6 +578,7 @@ function AdminDashboard() {
           <div className="overview-header">
 
             <div>
+
               <p className="dashboard-tag">
                 COLLECTION
               </p>
@@ -387,6 +586,7 @@ function AdminDashboard() {
               <h2>
                 Collection Status
               </h2>
+
             </div>
 
             <span className="overview-icon">
@@ -405,6 +605,7 @@ function AdminDashboard() {
               </div>
 
               <div>
+
                 <p>
                   Pending Collection
                 </p>
@@ -416,6 +617,7 @@ function AdminDashboard() {
                 <span>
                   Reports waiting for collection
                 </span>
+
               </div>
 
             </div>
@@ -428,6 +630,7 @@ function AdminDashboard() {
               </div>
 
               <div>
+
                 <p>
                   Collected / Resolved
                 </p>
@@ -439,6 +642,7 @@ function AdminDashboard() {
                 <span>
                   Reports completed
                 </span>
+
               </div>
 
             </div>
@@ -450,13 +654,208 @@ function AdminDashboard() {
       </div>
 
 
-      {/* ADMIN MAP */}
+      {/* --------------------------------------------------
+          HOTSPOT INTELLIGENCE
+      -------------------------------------------------- */}
 
       <div className="reports-section">
 
         <div className="section-title">
 
           <div>
+
+            <p className="dashboard-tag">
+              SMART ANALYTICS
+            </p>
+
+            <h2>
+              Hotspot Intelligence
+            </h2>
+
+            <p>
+              Analyze recurring garbage clusters
+              and identify areas that need attention.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {hotspotData.length > 0 ? (
+
+          <div className="hotspot-intelligence-grid">
+
+            {hotspotData.map(
+              (hotspot) => (
+
+                <div
+                  className="hotspot-intelligence-card"
+                  key={hotspot.id}
+                >
+
+                  <div className="hotspot-card-header">
+
+                    <div>
+
+                      <span className="hotspot-card-number">
+                        🔥 Hotspot #{hotspot.number}
+                      </span>
+
+                      <h3>
+                        {hotspot.riskLevel} Risk
+                      </h3>
+
+                    </div>
+
+                    <span
+                      className={`hotspot-risk-badge ${hotspot.riskLevel.toLowerCase()}`}
+                    >
+                      {hotspot.riskLevel}
+                    </span>
+
+                  </div>
+
+
+                  <div className="hotspot-main-count">
+
+                    <strong>
+                      {hotspot.reportCount}
+                    </strong>
+
+                    <span>
+                      Reports within 100m
+                    </span>
+
+                  </div>
+
+
+                  <div className="hotspot-details-grid">
+
+                    <div>
+
+                      <span>
+                        ⏳
+                      </span>
+
+                      <p>
+                        Pending
+                      </p>
+
+                      <strong>
+                        {hotspot.pendingCount}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        ✅
+                      </span>
+
+                      <p>
+                        Collected
+                      </p>
+
+                      <strong>
+                        {hotspot.collectedCount}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        🚨
+                      </span>
+
+                      <p>
+                        High Priority
+                      </p>
+
+                      <strong>
+                        {hotspot.highPriorityCount}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        🗑️
+                      </span>
+
+                      <p>
+                        Common Garbage
+                      </p>
+
+                      <strong>
+                        {hotspot.commonGarbage}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+
+                  <div className="hotspot-location">
+
+                    <strong>
+                      📍 Location
+                    </strong>
+
+                    <p>
+                      {hotspot.latitude},{" "}
+                      {hotspot.longitude}
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )
+            )}
+
+          </div>
+
+        ) : (
+
+          <div className="empty-reports">
+
+            <div className="empty-icon">
+              🔥
+            </div>
+
+            <h3>
+              No hotspots detected
+            </h3>
+
+            <p>
+              Hotspots will appear when at least
+              3 reports are located within 100 meters.
+            </p>
+
+          </div>
+
+        )}
+
+      </div>
+
+
+      {/* --------------------------------------------------
+          ADMIN MAP
+      -------------------------------------------------- */}
+
+      <div className="reports-section">
+
+        <div className="section-title">
+
+          <div>
+
             <p className="dashboard-tag">
               LIVE MONITORING
             </p>
@@ -469,6 +868,7 @@ function AdminDashboard() {
               Monitor reported garbage locations
               and their AI-based priority.
             </p>
+
           </div>
 
         </div>
@@ -479,13 +879,16 @@ function AdminDashboard() {
       </div>
 
 
-      {/* RECENT ACTIVITY */}
+      {/* --------------------------------------------------
+          RECENT ACTIVITY
+      -------------------------------------------------- */}
 
       <div className="reports-section">
 
         <div className="section-title">
 
           <div>
+
             <p className="dashboard-tag">
               RECENT ACTIVITY
             </p>
@@ -493,6 +896,7 @@ function AdminDashboard() {
             <h2>
               Recent Garbage Reports
             </h2>
+
           </div>
 
         </div>
@@ -598,6 +1002,7 @@ function AdminDashboard() {
                         </p>
 
                       </div>
+
                     )}
 
 
@@ -621,11 +1026,13 @@ function AdminDashboard() {
 
 
                     <p className="report-date">
+
                       📅 Submitted:{" "}
 
                       {new Date(
                         report.createdAt
                       ).toLocaleString()}
+
                     </p>
 
 
@@ -640,14 +1047,17 @@ function AdminDashboard() {
                         {report.rating}/5
 
                         {report.feedback && (
+
                           <p>
                             Feedback:{" "}
 
                             {report.feedback}
                           </p>
+
                         )}
 
                       </div>
+
                     )}
 
                   </div>
