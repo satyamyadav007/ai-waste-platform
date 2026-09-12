@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReportMap from "../components/ReportMap";
 
 function Hotspots() {
   const [reports] = useState(() => {
@@ -97,8 +98,8 @@ function Hotspots() {
           nearbyReports.filter(
             (nearbyReport) =>
               nearbyReport.aiResult &&
-              nearbyReport.aiResult
-                .severity === "High"
+              nearbyReport.aiResult.severity ===
+                "High"
           ).length;
 
         let riskLevel = "Low";
@@ -116,13 +117,21 @@ function Hotspots() {
 
         hotspots.push({
           id: report.id,
-          latitude: report.latitude,
-          longitude: report.longitude,
+
+          latitude:
+            report.latitude,
+
+          longitude:
+            report.longitude,
+
           reportCount:
             nearbyReports.length,
+
           highPriorityCount:
             highPriorityCount,
-          riskLevel: riskLevel,
+
+          riskLevel:
+            riskLevel,
         });
       }
     });
@@ -130,137 +139,209 @@ function Hotspots() {
     return hotspots;
   }
 
-  const hotspots = findHotspots();
+  const hotspots =
+    findHotspots();
 
   return (
     <div className="dashboard-page">
+
       <div className="dashboard-header">
         <div>
+
           <p className="dashboard-tag">
             AI INSIGHTS
           </p>
 
-          <h1>Garbage Hotspots</h1>
+          <h1>
+            Garbage Hotspots
+          </h1>
 
           <p>
             Identify areas where garbage complaints
             are repeatedly reported.
           </p>
+
         </div>
       </div>
 
+
+      {/* MAP */}
+
+      <ReportMap />
+
+
+      {/* HOTSPOT SUMMARY */}
+
       <div className="hotspot-summary">
+
         <div className="stat-card">
+
           <span className="stat-icon">
             🔥
           </span>
 
           <div>
-            <p>Hotspots Detected</p>
-            <h2>{hotspots.length}</h2>
+
+            <p>
+              Hotspots Detected
+            </p>
+
+            <h2>
+              {hotspots.length}
+            </h2>
+
           </div>
+
         </div>
 
+
         <div className="stat-card">
+
           <span className="stat-icon">
             📋
           </span>
 
           <div>
-            <p>Total Reports</p>
-            <h2>{reports.length}</h2>
+
+            <p>
+              Total Reports
+            </p>
+
+            <h2>
+              {reports.length}
+            </h2>
+
           </div>
+
         </div>
+
       </div>
 
+
+      {/* HOTSPOT LIST */}
+
       <div className="reports-section">
+
         <div className="section-title">
+
           <div>
+
             <p className="dashboard-tag">
               RECURRING AREAS
             </p>
 
-            <h2>Detected Hotspots</h2>
+            <h2>
+              Detected Hotspots
+            </h2>
+
           </div>
+
         </div>
 
+
         {hotspots.length > 0 ? (
+
           <div className="hotspot-list">
-            {hotspots.map((hotspot) => (
-              <div
-                className="hotspot-card"
-                key={hotspot.id}
-              >
-                <div className="hotspot-icon">
-                  🔥
-                </div>
 
-                <div className="hotspot-content">
-                  <div className="hotspot-header">
-                    <div>
-                      <p className="report-id">
-                        HOTSPOT #{hotspot.id}
-                      </p>
+            {hotspots.map(
+              (hotspot) => (
 
-                      <h3>
-                        Recurring Garbage Area
-                      </h3>
+                <div
+                  className="hotspot-card"
+                  key={hotspot.id}
+                >
+
+                  <div className="hotspot-icon">
+                    🔥
+                  </div>
+
+
+                  <div className="hotspot-content">
+
+                    <div className="hotspot-header">
+
+                      <div>
+
+                        <p className="report-id">
+                          HOTSPOT #{hotspot.id}
+                        </p>
+
+                        <h3>
+                          Recurring Garbage Area
+                        </h3>
+
+                      </div>
+
+
+                      <span
+                        className={`hotspot-risk ${hotspot.riskLevel.toLowerCase()}`}
+                      >
+                        {hotspot.riskLevel} Risk
+                      </span>
+
                     </div>
 
-                    <span
-                      className={`hotspot-risk ${hotspot.riskLevel.toLowerCase()}`}
-                    >
-                      {hotspot.riskLevel} Risk
-                    </span>
+
+                    <div className="hotspot-info">
+
+                      <p>
+                        <strong>
+                          📍 Latitude:
+                        </strong>{" "}
+                        {hotspot.latitude}
+                      </p>
+
+                      <p>
+                        <strong>
+                          📍 Longitude:
+                        </strong>{" "}
+                        {hotspot.longitude}
+                      </p>
+
+                      <p>
+                        <strong>
+                          📋 Reports within 100m:
+                        </strong>{" "}
+                        {hotspot.reportCount}
+                      </p>
+
+                      <p>
+                        <strong>
+                          🚨 High-priority reports:
+                        </strong>{" "}
+                        {hotspot.highPriorityCount}
+                      </p>
+
+                    </div>
+
+
+                    <div className="hotspot-message">
+
+                      <strong>
+                        💡 Insight
+                      </strong>
+
+                      <p>
+                        This area has received multiple
+                        garbage complaints and may require
+                        preventive action.
+                      </p>
+
+                    </div>
+
                   </div>
 
-                  <div className="hotspot-info">
-                    <p>
-                      <strong>
-                        📍 Latitude:
-                      </strong>{" "}
-                      {hotspot.latitude}
-                    </p>
-
-                    <p>
-                      <strong>
-                        📍 Longitude:
-                      </strong>{" "}
-                      {hotspot.longitude}
-                    </p>
-
-                    <p>
-                      <strong>
-                        📋 Reports within 100m:
-                      </strong>{" "}
-                      {hotspot.reportCount}
-                    </p>
-
-                    <p>
-                      <strong>
-                        🚨 High-priority reports:
-                      </strong>{" "}
-                      {hotspot.highPriorityCount}
-                    </p>
-                  </div>
-
-                  <div className="hotspot-message">
-                    <strong>
-                      💡 Insight
-                    </strong>
-
-                    <p>
-                      This area has received multiple
-                      garbage complaints and may require
-                      preventive action.
-                    </p>
-                  </div>
                 </div>
-              </div>
-            ))}
+
+              )
+            )}
+
           </div>
+
         ) : (
+
           <div className="empty-reports">
+
             <div className="empty-icon">
               🗺️
             </div>
@@ -274,9 +355,13 @@ function Hotspots() {
               100 meters are required to identify
               a recurring hotspot.
             </p>
+
           </div>
+
         )}
+
       </div>
+
     </div>
   );
 }

@@ -10,26 +10,43 @@ function Login() {
   function handleLogin(event) {
     event.preventDefault();
 
-    const savedUser = JSON.parse(
-      localStorage.getItem("cleanBharatUser")
-    );
+    const users =
+      JSON.parse(
+        localStorage.getItem("cleanBharatUsers")
+      ) || [];
 
-    if (!savedUser) {
-      alert("No account found. Please register first.");
+    if (users.length === 0) {
+      alert(
+        "No account found. Please register first."
+      );
       return;
     }
 
-    if (
-      email === savedUser.email &&
-      password === savedUser.password
-    ) {
-      localStorage.setItem("loggedInUser", JSON.stringify(savedUser));
+    const savedUser = users.find(
+      (user) =>
+        user.email.toLowerCase() ===
+          email.toLowerCase() &&
+        user.password === password
+    );
 
-      alert("Login successful!");
-
-      navigate("/dashboard");
-    } else {
+    if (!savedUser) {
       alert("Invalid email or password.");
+      return;
+    }
+
+    localStorage.setItem(
+      "loggedInUser",
+      JSON.stringify(savedUser)
+    );
+
+    alert("Login successful!");
+
+    if (savedUser.role === "collector") {
+      navigate("/collector-dashboard");
+    } else if (savedUser.role === "admin") {
+      navigate("/admin-dashboard");
+    } else {
+      navigate("/dashboard");
     }
   }
 
@@ -39,33 +56,48 @@ function Login() {
 
         <h1>Welcome Back</h1>
 
-        <p>Login to your CleanBharat account.</p>
+        <p>
+          Login to your CleanBharat account.
+        </p>
 
-        <form className="auth-form" onSubmit={handleLogin}>
+        <form
+          className="auth-form"
+          onSubmit={handleLogin}
+        >
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">
+              Email
+            </label>
 
             <input
               id="email"
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
             />
           </div>
 
+
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">
+              Password
+            </label>
 
             <input
               id="password"
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
             />
           </div>
+
 
           <button type="submit">
             Login

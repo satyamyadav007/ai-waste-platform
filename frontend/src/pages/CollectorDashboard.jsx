@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReportMap from "../components/ReportMap";
 
 function CollectorDashboard() {
   const [reports, setReports] = useState(() => {
@@ -78,13 +79,12 @@ function CollectorDashboard() {
     }));
 
     try {
-      const beforeImage =
-        dataUrlToBase64(
-          report.originalImageData
-        );
+      const beforeImage = dataUrlToBase64(
+        report.originalImageData
+      );
 
-      const afterImage =
-        await new Promise((resolve, reject) => {
+      const afterImage = await new Promise(
+        (resolve, reject) => {
           const reader = new FileReader();
 
           reader.onloadend = () => {
@@ -98,7 +98,8 @@ function CollectorDashboard() {
           reader.onerror = reject;
 
           reader.readAsDataURL(proofFile);
-        });
+        }
+      );
 
       console.log(
         "Sending before and after images for AI verification."
@@ -267,13 +268,16 @@ function CollectorDashboard() {
 
   return (
     <div className="dashboard-page">
+
       <div className="dashboard-header">
         <div>
           <p className="dashboard-tag">
             COLLECTOR PORTAL
           </p>
 
-          <h1>Collector Dashboard</h1>
+          <h1>
+            Collector Dashboard
+          </h1>
 
           <p>
             View garbage reports submitted by
@@ -283,14 +287,44 @@ function CollectorDashboard() {
         </div>
       </div>
 
+
+      {/* MAP */}
+
       <div className="reports-section">
+        <div className="section-title">
+          <div>
+            <p className="dashboard-tag">
+              REPORT LOCATIONS
+            </p>
+
+            <h2>
+              Garbage Locations Map
+            </h2>
+
+            <p>
+              View reported garbage locations
+              and their AI-based priority.
+            </p>
+          </div>
+        </div>
+
+        <ReportMap />
+      </div>
+
+
+      {/* REPORTS */}
+
+      <div className="reports-section">
+
         <div className="section-title">
           <div>
             <p className="dashboard-tag">
               GARBAGE REPORTS
             </p>
 
-            <h2>Reports to Collect</h2>
+            <h2>
+              Reports to Collect
+            </h2>
 
             <p>
               Reports are automatically arranged
@@ -300,300 +334,381 @@ function CollectorDashboard() {
         </div>
 
         {sortedReports.length > 0 ? (
+
           <div className="reports-list">
-            {sortedReports.map((report) => (
-              <div
-                className="report-card"
-                key={report.id}
-              >
-                <div className="report-card-image">
-                  <img
-                    src={report.image}
-                    alt="Reported garbage"
-                  />
-                </div>
 
-                <div className="report-card-content">
-                  <div className="report-card-header">
-                    <div>
-                      <p className="report-id">
-                        Report #{report.id}
-                      </p>
+            {sortedReports.map(
+              (report) => (
 
-                      <h3>
-                        {report.garbageType}
-                      </h3>
-                    </div>
+                <div
+                  className="report-card"
+                  key={report.id}
+                >
 
-                    <span className="report-status">
-                      {report.status}
-                    </span>
+                  <div className="report-card-image">
+                    <img
+                      src={report.image}
+                      alt="Reported garbage"
+                    />
                   </div>
 
-                  <p className="report-description">
-                    {report.description}
-                  </p>
+                  <div className="report-card-content">
 
-                  {report.aiResult && (
-                    <div className="collector-ai-box">
-                      <div className="collector-ai-header">
+                    <div className="report-card-header">
+
+                      <div>
+                        <p className="report-id">
+                          Report #{report.id}
+                        </p>
+
                         <h3>
-                          🤖 AI Analysis
+                          {report.garbageType}
                         </h3>
-
-                        <span className="ai-priority">
-                          {getPriorityText(
-                            report.aiResult.severity
-                          )}
-                        </span>
                       </div>
 
-                      <p>
-                        <strong>
-                          Garbage Detected:
-                        </strong>{" "}
-                        {report.aiResult
-                          .garbageDetected
-                          ? "Yes"
-                          : "No"}
-                      </p>
+                      <span className="report-status">
+                        {report.status}
+                      </span>
 
-                      <p>
-                        <strong>
-                          AI Garbage Type:
-                        </strong>{" "}
-                        {
-                          report.aiResult
-                            .garbageType
-                        }
-                      </p>
-
-                      <p>
-                        <strong>
-                          Confidence:
-                        </strong>{" "}
-                        {
-                          report.aiResult
-                            .confidence
-                        }%
-                      </p>
-
-                      <p>
-                        <strong>
-                          Severity:
-                        </strong>{" "}
-                        {
-                          report.aiResult
-                            .severity
-                        }
-                      </p>
-
-                      <p>
-                        <strong>
-                          AI Description:
-                        </strong>{" "}
-                        {
-                          report.aiResult
-                            .description
-                        }
-                      </p>
                     </div>
-                  )}
 
-                  <div className="report-location">
-                    <strong>
-                      📍 Location
-                    </strong>
 
-                    <p>
-                      Latitude:{" "}
-                      {report.latitude}
+                    <p className="report-description">
+                      {report.description}
                     </p>
 
-                    <p>
-                      Longitude:{" "}
-                      {report.longitude}
-                    </p>
-                  </div>
 
-                  <p className="report-date">
-                    📅 Submitted:{" "}
-                    {new Date(
-                      report.createdAt
-                    ).toLocaleString()}
-                  </p>
+                    {report.aiResult && (
 
-                  {report.status === "Pending" && (
-                    <div className="collector-action">
-                      <label className="proof-upload">
-                        📷 Upload Collection Proof
+                      <div className="collector-ai-box">
 
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(event) =>
-                            handleProofImageChange(
-                              event,
-                              report.id
-                            )
-                          }
-                          hidden
-                        />
-                      </label>
+                        <div className="collector-ai-header">
 
-                      {proofImages[
-                        report.id
-                      ] && (
-                        <div className="proof-preview">
-                          <img
-                            src={
-                              proofImages[
-                                report.id
-                              ]
-                            }
-                            alt="Collection proof"
-                          />
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        className="ai-analyze-button"
-                        onClick={() =>
-                          verifyCollection(
-                            report.id
-                          )
-                        }
-                        disabled={
-                          verificationLoading[
-                            report.id
-                          ]
-                        }
-                      >
-                        {verificationLoading[
-                          report.id
-                        ]
-                          ? "🤖 Verifying..."
-                          : "🤖 Verify Collection with AI"}
-                      </button>
-
-                      {verificationResults[
-                        report.id
-                      ] && (
-                        <div className="verification-box">
                           <h3>
-                            🤖 AI Collection Verification
+                            🤖 AI Analysis
                           </h3>
 
-                          <p>
-                            <strong>
-                              Garbage Removed:
-                            </strong>{" "}
-                            {verificationResults[
-                              report.id
-                            ].garbageRemoved
-                              ? "Yes ✅"
-                              : "No ❌"}
-                          </p>
+                          <span className="ai-priority">
+                            {getPriorityText(
+                              report.aiResult.severity
+                            )}
+                          </span>
 
-                          <p>
-                            <strong>
-                              Confidence:
-                            </strong>{" "}
-                            {
-                              verificationResults[
-                                report.id
-                              ].confidence
-                            }%
-                          </p>
-
-                          <p>
-                            <strong>
-                              Explanation:
-                            </strong>{" "}
-                            {
-                              verificationResults[
-                                report.id
-                              ].explanation
-                            }
-                          </p>
                         </div>
-                      )}
 
-                      <button
-                        type="button"
-                        className="collect-button"
-                        onClick={() =>
-                          handleCollected(
-                            report.id
-                          )
-                        }
-                      >
-                        ✅ Mark as Collected
-                      </button>
-                    </div>
-                  )}
-
-                  {report.status === "Collected" &&
-                    report.proofImage && (
-                      <div className="proof-preview">
-                        <strong>
-                          Collection Proof
-                        </strong>
-
-                        <img
-                          src={
-                            report.proofImage
-                          }
-                          alt="Collection proof"
-                        />
-                      </div>
-                    )}
-
-                  {report.status === "Collected" &&
-                    report.verification && (
-                      <div className="verification-box">
-                        <h3>
-                          🤖 AI Verification
-                        </h3>
 
                         <p>
                           <strong>
-                            Garbage Removed:
+                            Garbage Detected:
                           </strong>{" "}
-                          {report.verification
-                            .garbageRemoved
-                            ? "Yes ✅"
-                            : "No ❌"}
+                          {report.aiResult
+                            .garbageDetected
+                            ? "Yes"
+                            : "No"}
                         </p>
+
+
+                        <p>
+                          <strong>
+                            AI Garbage Type:
+                          </strong>{" "}
+                          {
+                            report.aiResult
+                              .garbageType
+                          }
+                        </p>
+
 
                         <p>
                           <strong>
                             Confidence:
                           </strong>{" "}
                           {
-                            report.verification
+                            report.aiResult
                               .confidence
                           }%
                         </p>
 
+
                         <p>
                           <strong>
-                            Explanation:
+                            Severity:
                           </strong>{" "}
                           {
-                            report.verification
-                              .explanation
+                            report.aiResult
+                              .severity
                           }
                         </p>
+
+
+                        <p>
+                          <strong>
+                            AI Description:
+                          </strong>{" "}
+                          {
+                            report.aiResult
+                              .description
+                          }
+                        </p>
+
                       </div>
+
                     )}
+
+
+                    <div className="report-location">
+
+                      <strong>
+                        📍 Location
+                      </strong>
+
+                      <p>
+                        Latitude:{" "}
+                        {report.latitude}
+                      </p>
+
+                      <p>
+                        Longitude:{" "}
+                        {report.longitude}
+                      </p>
+
+                    </div>
+
+
+                    <p className="report-date">
+                      📅 Submitted:{" "}
+                      {new Date(
+                        report.createdAt
+                      ).toLocaleString()}
+                    </p>
+
+
+                    {report.status === "Pending" && (
+
+                      <div className="collector-action">
+
+                        <label className="proof-upload">
+
+                          📷 Upload Collection Proof
+
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(event) =>
+                              handleProofImageChange(
+                                event,
+                                report.id
+                              )
+                            }
+                            hidden
+                          />
+
+                        </label>
+
+
+                        {proofImages[
+                          report.id
+                        ] && (
+
+                          <div className="proof-preview">
+
+                            <img
+                              src={
+                                proofImages[
+                                  report.id
+                                ]
+                              }
+                              alt="Collection proof"
+                            />
+
+                          </div>
+
+                        )}
+
+
+                        <button
+                          type="button"
+                          className="ai-analyze-button"
+                          onClick={() =>
+                            verifyCollection(
+                              report.id
+                            )
+                          }
+                          disabled={
+                            verificationLoading[
+                              report.id
+                            ]
+                          }
+                        >
+
+                          {verificationLoading[
+                            report.id
+                          ]
+                            ? "🤖 Verifying..."
+                            : "🤖 Verify Collection with AI"}
+
+                        </button>
+
+
+                        {verificationResults[
+                          report.id
+                        ] && (
+
+                          <div className="verification-box">
+
+                            <h3>
+                              🤖 AI Collection Verification
+                            </h3>
+
+
+                            <p>
+                              <strong>
+                                Garbage Removed:
+                              </strong>{" "}
+
+                              {verificationResults[
+                                report.id
+                              ].garbageRemoved
+                                ? "Yes ✅"
+                                : "No ❌"}
+
+                            </p>
+
+
+                            <p>
+                              <strong>
+                                Confidence:
+                              </strong>{" "}
+
+                              {
+                                verificationResults[
+                                  report.id
+                                ].confidence
+                              }%
+
+                            </p>
+
+
+                            <p>
+                              <strong>
+                                Explanation:
+                              </strong>{" "}
+
+                              {
+                                verificationResults[
+                                  report.id
+                                ].explanation
+                              }
+
+                            </p>
+
+                          </div>
+
+                        )}
+
+
+                        <button
+                          type="button"
+                          className="collect-button"
+                          onClick={() =>
+                            handleCollected(
+                              report.id
+                            )
+                          }
+                        >
+                          ✅ Mark as Collected
+                        </button>
+
+                      </div>
+
+                    )}
+
+
+                    {report.status === "Collected" &&
+                      report.proofImage && (
+
+                        <div className="proof-preview">
+
+                          <strong>
+                            Collection Proof
+                          </strong>
+
+                          <img
+                            src={
+                              report.proofImage
+                            }
+                            alt="Collection proof"
+                          />
+
+                        </div>
+
+                    )}
+
+
+                    {report.status === "Collected" &&
+                      report.verification && (
+
+                        <div className="verification-box">
+
+                          <h3>
+                            🤖 AI Verification
+                          </h3>
+
+
+                          <p>
+                            <strong>
+                              Garbage Removed:
+                            </strong>{" "}
+
+                            {report.verification
+                              .garbageRemoved
+                              ? "Yes ✅"
+                              : "No ❌"}
+
+                          </p>
+
+
+                          <p>
+                            <strong>
+                              Confidence:
+                            </strong>{" "}
+
+                            {
+                              report.verification
+                                .confidence
+                            }%
+
+                          </p>
+
+
+                          <p>
+                            <strong>
+                              Explanation:
+                            </strong>{" "}
+
+                            {
+                              report.verification
+                                .explanation
+                            }
+
+                          </p>
+
+                        </div>
+
+                    )}
+
+                  </div>
+
                 </div>
-              </div>
+
             ))}
+
           </div>
+
         ) : (
+
           <div className="empty-reports">
+
             <div className="empty-icon">
               🗑️
             </div>
@@ -606,9 +721,13 @@ function CollectorDashboard() {
               There are currently no garbage
               reports submitted by citizens.
             </p>
+
           </div>
+
         )}
+
       </div>
+
     </div>
   );
 }

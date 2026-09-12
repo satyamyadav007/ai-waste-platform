@@ -2,25 +2,65 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loggedInUser = localStorage.getItem("loggedInUser");
+    const savedUser = localStorage.getItem("loggedInUser");
 
-    setIsLoggedIn(!!loggedInUser);
+    if (savedUser) {
+      try {
+        setLoggedInUser(JSON.parse(savedUser));
+      } catch (error) {
+        setLoggedInUser(null);
+      }
+    } else {
+      setLoggedInUser(null);
+    }
   }, [location.pathname]);
 
   function handleLogout() {
     localStorage.removeItem("loggedInUser");
 
-    setIsLoggedIn(false);
+    setLoggedInUser(null);
 
     alert("You have been logged out.");
 
     navigate("/");
+  }
+
+  function getDashboardLink() {
+    if (!loggedInUser) {
+      return "/login";
+    }
+
+    if (loggedInUser.role === "collector") {
+      return "/collector-dashboard";
+    }
+
+    if (loggedInUser.role === "admin") {
+      return "/admin-dashboard";
+    }
+
+    return "/dashboard";
+  }
+
+  function getDashboardName() {
+    if (!loggedInUser) {
+      return "Dashboard";
+    }
+
+    if (loggedInUser.role === "collector") {
+      return "Collector Dashboard";
+    }
+
+    if (loggedInUser.role === "admin") {
+      return "Admin Dashboard";
+    }
+
+    return "Dashboard";
   }
 
   return (
@@ -30,20 +70,25 @@ function Navbar() {
 
       <div className="navbar-links">
 
-        <Link to="/">Home</Link>
-
-        <Link to="/report">
-          Report Garbage
+        <Link to="/">
+          Home
         </Link>
 
-        <Link to="/collector-dashboard">
-          Collector Portal
-        </Link>
+        {(!loggedInUser ||
+          loggedInUser.role === "citizen") && (
+          <Link to="/report">
+            Report Garbage
+          </Link>
+        )}
 
-        {isLoggedIn ? (
+        {loggedInUser ? (
           <>
-            <Link to="/dashboard">
-              Dashboard
+            <Link to={getDashboardLink()}>
+              {getDashboardName()}
+            </Link>
+
+            <Link to="/hotspots">
+              Hotspots
             </Link>
 
             <button
@@ -55,6 +100,10 @@ function Navbar() {
           </>
         ) : (
           <>
+            <Link to="/hotspots">
+              Hotspots
+            </Link>
+
             <Link to="/login">
               Login
             </Link>
