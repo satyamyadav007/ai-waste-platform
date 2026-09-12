@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReportMap from "../components/ReportMap";
 
 function AdminDashboard() {
   const [reports] = useState(() => {
@@ -246,6 +247,34 @@ function AdminDashboard() {
             </h2>
           </div>
         </div>
+
+      </div>
+
+
+      {/* ADMIN MAP */}
+
+      <div className="reports-section">
+
+        <div className="section-title">
+
+          <div>
+            <p className="dashboard-tag">
+              LIVE MONITORING
+            </p>
+
+            <h2>
+              Garbage Reports Map
+            </h2>
+
+            <p>
+              Monitor reported garbage locations
+              and their AI-based priority.
+            </p>
+          </div>
+
+        </div>
+
+        <ReportMap />
 
       </div>
 
