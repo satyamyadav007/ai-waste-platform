@@ -109,7 +109,10 @@ const collectedIcon =
 // --------------------------------------------------
 
 function getMarkerIcon(report) {
-  if (report.status === "Collected") {
+  if (
+    report.status === "Collected" ||
+    report.status === "Resolved"
+  ) {
     return collectedIcon;
   }
 
@@ -142,7 +145,7 @@ function getMarkerIcon(report) {
 // REPORT MAP
 // --------------------------------------------------
 
-function ReportMap() {
+function ReportMap({ showFilters = false }) {
   const [reports] = useState(() => {
     return (
       JSON.parse(
@@ -153,6 +156,21 @@ function ReportMap() {
     );
   });
 
+
+  // --------------------------------------------------
+  // FILTER STATES
+  // --------------------------------------------------
+
+  const [statusFilter, setStatusFilter] =
+    useState("All");
+
+  const [priorityFilter, setPriorityFilter] =
+    useState("All");
+
+
+  // --------------------------------------------------
+  // VALID REPORTS
+  // --------------------------------------------------
 
   const validReports =
     reports.filter(
@@ -174,6 +192,74 @@ function ReportMap() {
     );
 
 
+  // --------------------------------------------------
+  // FILTER REPORTS
+  // --------------------------------------------------
+
+  const filteredReports =
+    validReports.filter(
+      (report) => {
+
+        // STATUS FILTER
+
+        if (
+          statusFilter !== "All"
+        ) {
+
+          if (
+            statusFilter ===
+            "Collected"
+          ) {
+
+            if (
+              report.status !==
+                "Collected" &&
+              report.status !==
+                "Resolved"
+            ) {
+              return false;
+            }
+
+          } else if (
+            report.status !==
+            statusFilter
+          ) {
+
+            return false;
+          }
+        }
+
+
+        // PRIORITY FILTER
+
+        if (
+          priorityFilter !==
+          "All"
+        ) {
+
+          const severity =
+            report.aiResult
+              ? report.aiResult.severity
+              : "Unknown";
+
+          if (
+            severity !==
+            priorityFilter
+          ) {
+            return false;
+          }
+        }
+
+
+        return true;
+      }
+    );
+
+
+  // --------------------------------------------------
+  // MAP CENTER
+  // --------------------------------------------------
+
   const defaultCenter =
     validReports.length > 0
       ? [
@@ -193,7 +279,94 @@ function ReportMap() {
   return (
     <div className="report-map-container">
 
-      {validReports.length > 0 ? (
+
+      {/* --------------------------------------------------
+          ADMIN FILTERS
+      -------------------------------------------------- */}
+
+      {showFilters && (
+
+        <div className="map-filters">
+
+          <div className="map-filter-group">
+
+            <label htmlFor="status-filter">
+              Report Status
+            </label>
+
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(
+                  event.target.value
+                )
+              }
+            >
+
+              <option value="All">
+                All Reports
+              </option>
+
+              <option value="Pending">
+                Pending
+              </option>
+
+              <option value="Collected">
+                Collected
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div className="map-filter-group">
+
+            <label htmlFor="priority-filter">
+              AI Priority
+            </label>
+
+            <select
+              id="priority-filter"
+              value={priorityFilter}
+              onChange={(event) =>
+                setPriorityFilter(
+                  event.target.value
+                )
+              }
+            >
+
+              <option value="All">
+                All Priorities
+              </option>
+
+              <option value="High">
+                High Priority
+              </option>
+
+              <option value="Medium">
+                Medium Priority
+              </option>
+
+              <option value="Low">
+                Low Priority
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* --------------------------------------------------
+          MAP
+      -------------------------------------------------- */}
+
+      {filteredReports.length > 0 ? (
 
         <>
 
@@ -210,7 +383,7 @@ function ReportMap() {
             />
 
 
-            {validReports.map(
+            {filteredReports.map(
               (report) => (
 
                 <Marker
@@ -237,6 +410,7 @@ function ReportMap() {
                         Report #{report.id}
                       </strong>
 
+
                       <p>
                         <strong>
                           Garbage Type:
@@ -246,6 +420,7 @@ function ReportMap() {
                         }
                       </p>
 
+
                       <p>
                         <strong>
                           Status:
@@ -254,6 +429,7 @@ function ReportMap() {
                           report.status
                         }
                       </p>
+
 
                       {report.aiResult && (
                         <>
@@ -268,6 +444,7 @@ function ReportMap() {
                             }
                           </p>
 
+
                           <p>
                             <strong>
                               AI Confidence:
@@ -281,11 +458,13 @@ function ReportMap() {
                         </>
                       )}
 
+
                       <p>
                         <strong>
                           Location:
                         </strong>
                       </p>
+
 
                       <p>
                         {report.latitude},{" "}
@@ -312,20 +491,24 @@ function ReportMap() {
               Map Legend
             </strong>
 
+
             <div className="legend-item">
               <span>🔴</span>
               High Priority
             </div>
+
 
             <div className="legend-item">
               <span>🟠</span>
               Medium Priority
             </div>
 
+
             <div className="legend-item">
               <span>🟢</span>
               Low Priority
             </div>
+
 
             <div className="legend-item">
               <span>✅</span>
@@ -345,12 +528,11 @@ function ReportMap() {
           </div>
 
           <h3>
-            No report locations available
+            No matching reports
           </h3>
 
           <p>
-            Garbage reports with valid
-            locations will appear on the map.
+            Try changing the map filters.
           </p>
 
         </div>

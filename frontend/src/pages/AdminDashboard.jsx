@@ -165,6 +165,8 @@ function AdminDashboard() {
       </div>
 
 
+      {/* ADMIN STATISTICS */}
+
       <div className="admin-stats">
 
         <div className="stat-card">
@@ -174,7 +176,10 @@ function AdminDashboard() {
 
           <div>
             <p>Total Reports</p>
-            <h2>{totalReports}</h2>
+
+            <h2>
+              {totalReports}
+            </h2>
           </div>
         </div>
 
@@ -186,6 +191,7 @@ function AdminDashboard() {
 
           <div>
             <p>Pending Reports</p>
+
             <h2>
               {pendingReports}
             </h2>
@@ -200,6 +206,7 @@ function AdminDashboard() {
 
           <div>
             <p>Collected Reports</p>
+
             <h2>
               {collectedReports}
             </h2>
@@ -214,6 +221,7 @@ function AdminDashboard() {
 
           <div>
             <p>High Priority</p>
+
             <h2>
               {highPriorityReports}
             </h2>
@@ -228,6 +236,7 @@ function AdminDashboard() {
 
           <div>
             <p>Hotspots</p>
+
             <h2>
               {hotspotCount}
             </h2>
@@ -242,6 +251,7 @@ function AdminDashboard() {
 
           <div>
             <p>Average Rating</p>
+
             <h2>
               {averageRating}
             </h2>
@@ -274,10 +284,13 @@ function AdminDashboard() {
 
         </div>
 
-        <ReportMap />
+
+        <ReportMap showFilters={true} />
 
       </div>
 
+
+      {/* RECENT ACTIVITY */}
 
       <div className="reports-section">
 
@@ -370,6 +383,7 @@ function AdminDashboard() {
                           <strong>
                             Garbage Detected:
                           </strong>{" "}
+
                           {report.aiResult
                             .garbageDetected
                             ? "Yes"
@@ -381,6 +395,7 @@ function AdminDashboard() {
                           <strong>
                             Confidence:
                           </strong>{" "}
+
                           {report.aiResult.confidence}%
                         </p>
 
@@ -389,6 +404,7 @@ function AdminDashboard() {
                           <strong>
                             Severity:
                           </strong>{" "}
+
                           {report.aiResult.severity}
                         </p>
 
@@ -417,6 +433,7 @@ function AdminDashboard() {
 
                     <p className="report-date">
                       📅 Submitted:{" "}
+
                       {new Date(
                         report.createdAt
                       ).toLocaleString()}
@@ -436,6 +453,7 @@ function AdminDashboard() {
                         {report.feedback && (
                           <p>
                             Feedback:{" "}
+
                             {report.feedback}
                           </p>
                         )}
