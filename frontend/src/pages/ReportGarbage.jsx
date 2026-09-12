@@ -3,10 +3,12 @@ import { useState } from "react";
 function ReportGarbage() {
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [originalImageData, setOriginalImageData] = useState(null);
+  const [originalImageData, setOriginalImageData] =
+    useState(null);
 
   const [location, setLocation] = useState(null);
-  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationLoading, setLocationLoading] =
+    useState(false);
 
   const [garbageType, setGarbageType] = useState("");
   const [description, setDescription] = useState("");
@@ -14,8 +16,15 @@ function ReportGarbage() {
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
 
-  const [duplicateResult, setDuplicateResult] = useState(null);
-  const [duplicateLoading, setDuplicateLoading] = useState(false);
+  const [duplicateResult, setDuplicateResult] =
+    useState(null);
+  const [duplicateLoading, setDuplicateLoading] =
+    useState(false);
+
+
+  // --------------------------------------------------
+  // COMPRESS IMAGE
+  // --------------------------------------------------
 
   function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -34,12 +43,14 @@ function ReportGarbage() {
           if (width > maxWidth) {
             height =
               (height * maxWidth) / width;
+
             width = maxWidth;
           }
 
           if (height > maxHeight) {
             width =
               (width * maxHeight) / height;
+
             height = maxHeight;
           }
 
@@ -71,7 +82,8 @@ function ReportGarbage() {
 
         img.onerror = reject;
 
-        img.src = event.target.result;
+        img.src =
+          event.target.result;
       };
 
       reader.onerror = reject;
@@ -80,8 +92,14 @@ function ReportGarbage() {
     });
   }
 
+
+  // --------------------------------------------------
+  // IMAGE CHANGE
+  // --------------------------------------------------
+
   async function handleImageChange(event) {
-    const file = event.target.files[0];
+    const file =
+      event.target.files[0];
 
     if (!file) {
       return;
@@ -121,6 +139,11 @@ function ReportGarbage() {
       );
     }
   }
+
+
+  // --------------------------------------------------
+  // AI GARBAGE ANALYSIS
+  // --------------------------------------------------
 
   async function analyzeWithAI() {
     if (!imageFile) {
@@ -166,7 +189,9 @@ function ReportGarbage() {
             },
 
             body: JSON.stringify({
-              image: base64Image,
+              image:
+                base64Image,
+
               mimeType:
                 "image/jpeg",
             }),
@@ -194,7 +219,9 @@ function ReportGarbage() {
 
       setAiResult(data);
 
-      if (data.garbageDetected) {
+      if (
+        data.garbageDetected
+      ) {
         setGarbageType(
           data.garbageType
         );
@@ -220,13 +247,19 @@ function ReportGarbage() {
     }
   }
 
+
+  // --------------------------------------------------
+  // CALCULATE DISTANCE
+  // --------------------------------------------------
+
   function calculateDistance(
     lat1,
     lon1,
     lat2,
     lon2
   ) {
-    const earthRadius = 6371000;
+    const earthRadius =
+      6371000;
 
     const lat1Radians =
       (lat1 * Math.PI) / 180;
@@ -270,12 +303,18 @@ function ReportGarbage() {
     );
   }
 
+
+  // --------------------------------------------------
+  // GET BASE64 PARTS
+  // --------------------------------------------------
+
   function getBase64Parts(
     dataUrl
   ) {
     if (
       !dataUrl ||
-      typeof dataUrl !== "string"
+      typeof dataUrl !==
+        "string"
     ) {
       return null;
     }
@@ -283,7 +322,9 @@ function ReportGarbage() {
     const parts =
       dataUrl.split(",");
 
-    if (parts.length < 2) {
+    if (
+      parts.length < 2
+    ) {
       return null;
     }
 
@@ -296,6 +337,11 @@ function ReportGarbage() {
           .split(";")[0],
     };
   }
+
+
+  // --------------------------------------------------
+  // CHECK DUPLICATE
+  // --------------------------------------------------
 
   async function checkForDuplicate() {
     console.log(
@@ -360,20 +406,23 @@ function ReportGarbage() {
 
             return {
               ...report,
+
               distanceMeters:
                 Math.round(
                   distance
                 ),
             };
           })
-          .filter((report) => {
-            return (
-              report !== null &&
-              report.distanceMeters <=
-                100 &&
-              report.originalImageData
-            );
-          })
+          .filter(
+            (report) => {
+              return (
+                report !== null &&
+                report.distanceMeters <=
+                  100 &&
+                report.originalImageData
+              );
+            }
+          )
           .sort(
             (a, b) =>
               a.distanceMeters -
@@ -410,7 +459,8 @@ function ReportGarbage() {
           duplicateDetected:
             false,
 
-          confidence: 100,
+          confidence:
+            100,
 
           reason:
             "No nearby previous reports with usable images were found.",
@@ -436,7 +486,8 @@ function ReportGarbage() {
             }
 
             return {
-              id: report.id,
+              id:
+                report.id,
 
               distanceMeters:
                 report.distanceMeters,
@@ -537,6 +588,11 @@ function ReportGarbage() {
     }
   }
 
+
+  // --------------------------------------------------
+  // GET LOCATION
+  // --------------------------------------------------
+
   function getLocation() {
     if (
       !navigator.geolocation
@@ -554,10 +610,12 @@ function ReportGarbage() {
       (position) => {
         setLocation({
           latitude:
-            position.coords.latitude,
+            position.coords
+              .latitude,
 
           longitude:
-            position.coords.longitude,
+            position.coords
+              .longitude,
         });
 
         setLocationLoading(false);
@@ -577,7 +635,12 @@ function ReportGarbage() {
     );
   }
 
-  function saveReport() {
+
+  // --------------------------------------------------
+  // SAVE REPORT
+  // --------------------------------------------------
+
+  async function saveReport() {
     const loggedInUser =
       JSON.parse(
         localStorage.getItem(
@@ -585,10 +648,26 @@ function ReportGarbage() {
         )
       );
 
-    const report = {
-      id: Date.now(),
+    if (!loggedInUser) {
+      alert(
+        "Please login before submitting a report."
+      );
 
-      image: image,
+      return;
+    }
+
+    const reportId =
+      String(Date.now());
+
+    const report = {
+      reportId:
+        reportId,
+
+      userEmail:
+        loggedInUser.email,
+
+      image:
+        image,
 
       originalImageData:
         originalImageData,
@@ -605,61 +684,204 @@ function ReportGarbage() {
       longitude:
         location.longitude,
 
-      status: "Pending",
+      status:
+        "Pending",
 
       createdAt:
         new Date().toISOString(),
-
-      userEmail:
-        loggedInUser.email,
 
       aiResult:
         aiResult,
 
       duplicateCheck:
         duplicateResult,
+
+      proofImage:
+        "",
+
+      verification: {
+        garbageRemoved:
+          false,
+
+        confidence:
+          0,
+
+        explanation:
+          "",
+      },
+
+      rating:
+        null,
+
+      feedback:
+        "",
     };
 
-    const existingReports =
-      JSON.parse(
-        localStorage.getItem(
-          "garbageReports"
+
+    try {
+      console.log(
+        "Sending garbage report to MongoDB..."
+      );
+
+      const response =
+        await fetch(
+          "http://localhost:5000/api/reports",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(
+                report
+              ),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      console.log(
+        "MongoDB report response:",
+        data
+      );
+
+
+      if (!response.ok) {
+        alert(
+          data.message ||
+            "Failed to save report."
+        );
+
+        return;
+      }
+
+
+      // --------------------------------------------------
+      // KEEP LOCALSTORAGE FOR NOW
+      // This keeps the existing dashboards working
+      // during the MongoDB migration.
+      // --------------------------------------------------
+
+      const localReport = {
+        id:
+          reportId,
+
+        image:
+          image,
+
+        originalImageData:
+          originalImageData,
+
+        garbageType:
+          garbageType,
+
+        description:
+          description,
+
+        latitude:
+          location.latitude,
+
+        longitude:
+          location.longitude,
+
+        status:
+          "Pending",
+
+        createdAt:
+          new Date().toISOString(),
+
+        userEmail:
+          loggedInUser.email,
+
+        aiResult:
+          aiResult,
+
+        duplicateCheck:
+          duplicateResult,
+      };
+
+
+      const existingReports =
+        JSON.parse(
+          localStorage.getItem(
+            "garbageReports"
+          )
+        ) || [];
+
+
+      existingReports.push(
+        localReport
+      );
+
+
+      localStorage.setItem(
+        "garbageReports",
+        JSON.stringify(
+          existingReports
         )
-      ) || [];
+      );
 
-    existingReports.push(
-      report
-    );
 
-    localStorage.setItem(
-      "garbageReports",
-      JSON.stringify(
-        existingReports
-      )
-    );
+      console.log(
+        "Garbage Report saved successfully:"
+      );
 
-    console.log(
-      "Garbage Report:",
-      report
-    );
+      console.log(
+        data.report
+      );
 
-    alert(
-      "Garbage report submitted successfully!"
-    );
 
-    setImage(null);
-    setImageFile(null);
-    setOriginalImageData(
-      null
-    );
-    setGarbageType("");
-    setDescription("");
-    setLocation(null);
-    setAiResult(null);
-    setDuplicateResult(null);
+      alert(
+        "Garbage report submitted successfully!"
+      );
+
+
+      setImage(null);
+
+      setImageFile(null);
+
+      setOriginalImageData(
+        null
+      );
+
+      setGarbageType("");
+
+      setDescription("");
+
+      setLocation(null);
+
+      setAiResult(null);
+
+      setDuplicateResult(
+        null
+      );
+
+    } catch (error) {
+      console.error(
+        "Report submission error:",
+        error
+      );
+
+      alert(
+        "Unable to connect to the backend."
+      );
+    }
   }
 
-  function handleSubmit(event) {
+
+  // --------------------------------------------------
+  // HANDLE SUBMIT
+  // --------------------------------------------------
+
+  async function handleSubmit(
+    event
+  ) {
     event.preventDefault();
 
     if (!image) {
@@ -709,6 +931,11 @@ function ReportGarbage() {
       return;
     }
 
+
+    // --------------------------------------------------
+    // DUPLICATE CONFIRMATION
+    // --------------------------------------------------
+
     if (
       duplicateResult &&
       duplicateResult.duplicateDetected
@@ -723,8 +950,14 @@ function ReportGarbage() {
       }
     }
 
-    saveReport();
+
+    await saveReport();
   }
+
+
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
 
   return (
     <div className="report-page">
@@ -749,7 +982,10 @@ function ReportGarbage() {
 
         </div>
 
+
         <div className="report-form">
+
+          {/* IMAGE */}
 
           <div className="form-group">
 
@@ -794,7 +1030,10 @@ function ReportGarbage() {
           </div>
 
 
+          {/* AI ANALYSIS */}
+
           {image && (
+
             <div className="ai-analysis-box">
 
               <button
@@ -812,64 +1051,95 @@ function ReportGarbage() {
                   : "🤖 Analyze Image with AI"}
               </button>
 
+
               {aiResult && (
+
                 <div className="ai-result">
 
                   <h3>
                     🤖 AI Analysis Result
                   </h3>
 
+
                   <p>
+
                     <strong>
                       Garbage Detected:
                     </strong>{" "}
-                    {aiResult.garbageDetected
+
+                    {aiResult
+                      .garbageDetected
                       ? "Yes"
                       : "No"}
+
                   </p>
 
+
                   <p>
+
                     <strong>
                       Garbage Type:
                     </strong>{" "}
+
                     {
-                      aiResult.garbageType
+                      aiResult
+                        .garbageType
                     }
+
                   </p>
 
+
                   <p>
+
                     <strong>
                       Confidence:
                     </strong>{" "}
+
                     {
-                      aiResult.confidence
+                      aiResult
+                        .confidence
                     }%
+
                   </p>
 
+
                   <p>
+
                     <strong>
                       Severity:
                     </strong>{" "}
+
                     {
-                      aiResult.severity
+                      aiResult
+                        .severity
                     }
+
                   </p>
 
+
                   <p>
+
                     <strong>
                       Description:
                     </strong>{" "}
+
                     {
-                      aiResult.description
+                      aiResult
+                        .description
                     }
+
                   </p>
 
                 </div>
+
               )}
 
             </div>
+
           )}
 
+
+          {/* GARBAGE TYPE */}
 
           <div className="form-group">
 
@@ -922,6 +1192,8 @@ function ReportGarbage() {
           </div>
 
 
+          {/* DESCRIPTION */}
+
           <div className="form-group">
 
             <label htmlFor="description">
@@ -945,6 +1217,8 @@ function ReportGarbage() {
           </div>
 
 
+          {/* LOCATION */}
+
           <div className="form-group">
 
             <label>
@@ -963,29 +1237,39 @@ function ReportGarbage() {
                 : "📍 Use My Current Location"}
             </button>
 
+
             {location && (
+
               <div className="location-result">
 
                 <strong>
                   📍 Location detected
                 </strong>
 
+
                 <p>
                   Latitude:{" "}
+
                   {
                     location.latitude
                   }
+
                 </p>
+
 
                 <p>
                   Longitude:{" "}
+
                   {
                     location.longitude
                   }
+
                 </p>
 
               </div>
+
             )}
+
 
             <p className="location-note">
               Your location will help the
@@ -995,7 +1279,10 @@ function ReportGarbage() {
           </div>
 
 
+          {/* DUPLICATE CHECK */}
+
           {image && location && (
+
             <div className="duplicate-check-box">
 
               <h3>
@@ -1006,6 +1293,7 @@ function ReportGarbage() {
                 Check whether a similar garbage
                 complaint already exists nearby.
               </p>
+
 
               <button
                 type="button"
@@ -1022,45 +1310,65 @@ function ReportGarbage() {
                   : "🔍 Check for Duplicate"}
               </button>
 
+
               {duplicateResult && (
+
                 <div
                   className={
-                    duplicateResult.duplicateDetected
+                    duplicateResult
+                      .duplicateDetected
                       ? "duplicate-result duplicate-found"
                       : "duplicate-result duplicate-clear"
                   }
                 >
 
                   <h3>
-                    {duplicateResult.duplicateDetected
-                      ? "⚠️ Possible Duplicate Found"
-                      : "✅ No Duplicate Detected"}
+                    {
+                      duplicateResult
+                        .duplicateDetected
+                        ? "⚠️ Possible Duplicate Found"
+                        : "✅ No Duplicate Detected"
+                    }
                   </h3>
 
+
                   <p>
+
                     <strong>
                       Confidence:
                     </strong>{" "}
+
                     {
-                      duplicateResult.confidence
+                      duplicateResult
+                        .confidence
                     }%
+
                   </p>
 
+
                   <p>
+
                     <strong>
                       AI Explanation:
                     </strong>{" "}
+
                     {
-                      duplicateResult.reason
+                      duplicateResult
+                        .reason
                     }
+
                   </p>
 
                 </div>
+
               )}
 
             </div>
+
           )}
 
+
+          {/* SUBMIT */}
 
           <button
             type="button"

@@ -1,16 +1,62 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const dns = require("dns");
+
+const GarbageReport = require("./models/GarbageReport");
 
 const { GoogleGenAI } = require("@google/genai");
 
 dotenv.config();
 
+
+// --------------------------------------------------
+// NODE DNS CONFIGURATION
+// --------------------------------------------------
+
+dns.setServers([
+  "8.8.8.8",
+  "1.1.1.1",
+]);
+
+
 const app = express();
 
 app.use(cors());
 
-app.use(express.json({ limit: "50mb" }));
+app.use(
+  express.json({
+    limit: "50mb",
+  })
+);
+
+
+// --------------------------------------------------
+// MONGODB CONNECTION
+// --------------------------------------------------
+
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    family: 4,
+    serverSelectionTimeoutMS: 10000,
+  })
+  .then(() => {
+    console.log(
+      "MongoDB connected successfully."
+    );
+  })
+  .catch((error) => {
+    console.error(
+      "MongoDB connection failed:",
+      error.message
+    );
+  });
+
+
+// --------------------------------------------------
+// GEMINI AI
+// --------------------------------------------------
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -21,7 +67,10 @@ const ai = new GoogleGenAI({
 // GEMINI AI RETRY FUNCTION
 // --------------------------------------------------
 
-async function generateAIContent(request, retries = 3) {
+async function generateAIContent(
+  request,
+  retries = 3
+) {
   for (
     let attempt = 1;
     attempt <= retries;
@@ -38,6 +87,7 @@ async function generateAIContent(request, retries = 3) {
         error.message
       );
 
+
       // --------------------------------------------------
       // QUOTA ERROR
       // Do NOT retry 429 errors.
@@ -51,6 +101,7 @@ async function generateAIContent(request, retries = 3) {
         throw error;
       }
 
+
       // --------------------------------------------------
       // OTHER NON-RETRYABLE ERRORS
       // --------------------------------------------------
@@ -58,6 +109,7 @@ async function generateAIContent(request, retries = 3) {
       if (error.status !== 503) {
         throw error;
       }
+
 
       // --------------------------------------------------
       // RETRY ONLY 503 ERRORS
@@ -67,6 +119,7 @@ async function generateAIContent(request, retries = 3) {
         throw error;
       }
 
+
       const waitTime =
         attempt * 3000;
 
@@ -75,6 +128,7 @@ async function generateAIContent(request, retries = 3) {
           waitTime / 1000
         } seconds...`
       );
+
 
       await new Promise(
         (resolve) =>
@@ -100,6 +154,61 @@ app.get("/", (req, res) => {
 
 
 // --------------------------------------------------
+// SAVE GARBAGE REPORT TO MONGODB
+// --------------------------------------------------
+
+app.post(
+  "/api/reports",
+  async (req, res) => {
+    try {
+      const report =
+        new GarbageReport(
+          req.body
+        );
+
+
+      const savedReport =
+        await report.save();
+
+
+      console.log(
+        "Garbage report saved to MongoDB:"
+      );
+
+
+      console.log(
+        savedReport.reportId
+      );
+
+
+      res.status(201).json({
+        message:
+          "Garbage report saved successfully.",
+
+        report:
+          savedReport,
+      });
+
+    } catch (error) {
+      console.error(
+        "Error saving garbage report:",
+        error
+      );
+
+
+      res.status(500).json({
+        message:
+          "Failed to save garbage report.",
+
+        error:
+          error.message,
+      });
+    }
+  }
+);
+
+
+// --------------------------------------------------
 // AI GARBAGE DETECTION
 // --------------------------------------------------
 
@@ -112,6 +221,7 @@ app.post(
         mimeType,
       } = req.body;
 
+
       if (
         !image ||
         !mimeType
@@ -122,18 +232,22 @@ app.post(
         });
       }
 
+
       console.log(
         "Received image for AI analysis."
       );
+
 
       const response =
         await generateAIContent({
           model:
             "gemini-3.6-flash",
 
+
           contents: [
             {
               role: "user",
+
 
               parts: [
                 {
@@ -145,6 +259,7 @@ app.post(
                       image,
                   },
                 },
+
 
                 {
                   text: `
@@ -160,17 +275,21 @@ give a confidence score, and provide a short description.
             },
           ],
 
+
           config: {
             responseMimeType:
               "application/json",
 
+
             responseSchema: {
               type: "object",
+
 
               properties: {
                 garbageDetected: {
                   type: "boolean",
                 },
+
 
                 garbageType: {
                   type: "string",
@@ -186,9 +305,11 @@ give a confidence score, and provide a short description.
                   ],
                 },
 
+
                 confidence: {
                   type: "integer",
                 },
+
 
                 severity: {
                   type: "string",
@@ -200,10 +321,12 @@ give a confidence score, and provide a short description.
                   ],
                 },
 
+
                 description: {
                   type: "string",
                 },
               },
+
 
               required: [
                 "garbageDetected",
@@ -216,21 +339,27 @@ give a confidence score, and provide a short description.
           },
         });
 
+
       const text =
         response.text;
+
 
       console.log(
         "AI Response:"
       );
 
+
       console.log(text);
+
 
       const result =
         JSON.parse(text);
 
+
       console.log(
         "Sending AI result to frontend."
       );
+
 
       res.json(result);
 
@@ -240,6 +369,7 @@ give a confidence score, and provide a short description.
         error
       );
 
+
       if (error.status === 429) {
         return res.status(429).json({
           message:
@@ -247,9 +377,11 @@ give a confidence score, and provide a short description.
         });
       }
 
+
       res.status(500).json({
         message:
           "Failed to analyze image.",
+
         error:
           error.message,
       });
@@ -273,6 +405,7 @@ app.post(
         afterMimeType,
       } = req.body;
 
+
       if (
         !beforeImage ||
         !beforeMimeType ||
@@ -285,18 +418,22 @@ app.post(
         });
       }
 
+
       console.log(
         "Received before/after images for verification."
       );
+
 
       const response =
         await generateAIContent({
           model:
             "gemini-3.6-flash",
 
+
           contents: [
             {
               role: "user",
+
 
               parts: [
                 {
@@ -309,6 +446,7 @@ app.post(
                   },
                 },
 
+
                 {
                   inlineData: {
                     mimeType:
@@ -318,6 +456,7 @@ app.post(
                       afterImage,
                   },
                 },
+
 
                 {
                   text: `
@@ -347,26 +486,32 @@ Return JSON with:
             },
           ],
 
+
           config: {
             responseMimeType:
               "application/json",
 
+
             responseSchema: {
               type: "object",
+
 
               properties: {
                 garbageRemoved: {
                   type: "boolean",
                 },
 
+
                 confidence: {
                   type: "integer",
                 },
+
 
                 explanation: {
                   type: "string",
                 },
               },
+
 
               required: [
                 "garbageRemoved",
@@ -377,21 +522,27 @@ Return JSON with:
           },
         });
 
+
       const text =
         response.text;
+
 
       console.log(
         "AI Verification Response:"
       );
 
+
       console.log(text);
+
 
       const result =
         JSON.parse(text);
 
+
       console.log(
         "Sending verification result to frontend."
       );
+
 
       res.json(result);
 
@@ -401,6 +552,7 @@ Return JSON with:
         error
       );
 
+
       if (error.status === 429) {
         return res.status(429).json({
           message:
@@ -408,9 +560,11 @@ Return JSON with:
         });
       }
 
+
       res.status(500).json({
         message:
           "Failed to verify garbage collection.",
+
         error:
           error.message,
       });
@@ -433,6 +587,7 @@ app.post(
         existingReports,
       } = req.body;
 
+
       if (
         !currentImage ||
         !currentMimeType
@@ -442,6 +597,7 @@ app.post(
             "Current report image is required.",
         });
       }
+
 
       if (
         !existingReports ||
@@ -459,9 +615,11 @@ app.post(
         });
       }
 
+
       console.log(
         "Checking for duplicate complaints."
       );
+
 
       const parts = [
         {
@@ -473,6 +631,7 @@ app.post(
               currentImage,
           },
         },
+
 
         {
           text: `
@@ -503,9 +662,11 @@ Previous report information:
         },
       ];
 
+
       for (
         const report of existingReports
       ) {
+
         parts.push({
           text: `
 Previous Report ID:
@@ -522,10 +683,12 @@ ${report.description}
 `,
         });
 
+
         if (
           report.image &&
           report.mimeType
         ) {
+
           parts.push({
             inlineData: {
               mimeType:
@@ -535,8 +698,10 @@ ${report.description}
                 report.image,
             },
           });
+
         }
       }
+
 
       parts.push({
         text: `
@@ -544,10 +709,12 @@ Return JSON according to the provided schema.
 `,
       });
 
+
       const response =
         await generateAIContent({
           model:
             "gemini-3.6-flash",
+
 
           contents: [
             {
@@ -558,26 +725,32 @@ Return JSON according to the provided schema.
             },
           ],
 
+
           config: {
             responseMimeType:
               "application/json",
 
+
             responseSchema: {
               type: "object",
+
 
               properties: {
                 duplicateDetected: {
                   type: "boolean",
                 },
 
+
                 confidence: {
                   type: "integer",
                 },
+
 
                 reason: {
                   type: "string",
                 },
               },
+
 
               required: [
                 "duplicateDetected",
@@ -588,17 +761,22 @@ Return JSON according to the provided schema.
           },
         });
 
+
       const text =
         response.text;
+
 
       console.log(
         "Duplicate AI Response:"
       );
 
+
       console.log(text);
+
 
       const result =
         JSON.parse(text);
+
 
       res.json(result);
 
@@ -608,6 +786,7 @@ Return JSON according to the provided schema.
         error
       );
 
+
       if (error.status === 429) {
         return res.status(429).json({
           message:
@@ -615,9 +794,11 @@ Return JSON according to the provided schema.
         });
       }
 
+
       res.status(500).json({
         message:
           "Failed to check duplicate complaint.",
+
         error:
           error.message,
       });
@@ -632,8 +813,11 @@ Return JSON according to the provided schema.
 
 const PORT = 5000;
 
-app.listen(PORT, () => {
-  console.log(
-    `CleanBharat AI backend running on port ${PORT}`
-  );
-});
+app.listen(
+  PORT,
+  () => {
+    console.log(
+      `CleanBharat AI backend running on port ${PORT}`
+    );
+  }
+);
