@@ -29,6 +29,20 @@ function AdminDashboard() {
       report.status === "Pending"
   ).length;
 
+  const mediumPriorityReports = reports.filter(
+    (report) =>
+      report.aiResult &&
+      report.aiResult.severity === "Medium" &&
+      report.status === "Pending"
+  ).length;
+
+  const lowPriorityReports = reports.filter(
+    (report) =>
+      report.aiResult &&
+      report.aiResult.severity === "Low" &&
+      report.status === "Pending"
+  ).length;
+
   const ratedReports = reports.filter(
     (report) => report.rating
   );
@@ -256,6 +270,181 @@ function AdminDashboard() {
               {averageRating}
             </h2>
           </div>
+        </div>
+
+      </div>
+
+
+      {/* PRIORITY OVERVIEW */}
+
+      <div className="admin-overview">
+
+        <div className="overview-card">
+
+          <div className="overview-header">
+
+            <div>
+              <p className="dashboard-tag">
+                AI PRIORITY
+              </p>
+
+              <h2>
+                Priority Overview
+              </h2>
+            </div>
+
+            <span className="overview-icon">
+              🤖
+            </span>
+
+          </div>
+
+
+          <div className="priority-overview-grid">
+
+            <div className="priority-overview-item high">
+
+              <div className="priority-overview-icon">
+                🔴
+              </div>
+
+              <div>
+                <p>
+                  High Priority
+                </p>
+
+                <h3>
+                  {highPriorityReports}
+                </h3>
+
+                <span>
+                  Pending reports
+                </span>
+              </div>
+
+            </div>
+
+
+            <div className="priority-overview-item medium">
+
+              <div className="priority-overview-icon">
+                🟠
+              </div>
+
+              <div>
+                <p>
+                  Medium Priority
+                </p>
+
+                <h3>
+                  {mediumPriorityReports}
+                </h3>
+
+                <span>
+                  Pending reports
+                </span>
+              </div>
+
+            </div>
+
+
+            <div className="priority-overview-item low">
+
+              <div className="priority-overview-icon">
+                🟢
+              </div>
+
+              <div>
+                <p>
+                  Low Priority
+                </p>
+
+                <h3>
+                  {lowPriorityReports}
+                </h3>
+
+                <span>
+                  Pending reports
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div className="overview-card">
+
+          <div className="overview-header">
+
+            <div>
+              <p className="dashboard-tag">
+                COLLECTION
+              </p>
+
+              <h2>
+                Collection Status
+              </h2>
+            </div>
+
+            <span className="overview-icon">
+              🚛
+            </span>
+
+          </div>
+
+
+          <div className="collection-overview">
+
+            <div className="collection-overview-item">
+
+              <div className="collection-icon pending">
+                ⏳
+              </div>
+
+              <div>
+                <p>
+                  Pending Collection
+                </p>
+
+                <h3>
+                  {pendingReports}
+                </h3>
+
+                <span>
+                  Reports waiting for collection
+                </span>
+              </div>
+
+            </div>
+
+
+            <div className="collection-overview-item">
+
+              <div className="collection-icon collected">
+                ✅
+              </div>
+
+              <div>
+                <p>
+                  Collected / Resolved
+                </p>
+
+                <h3>
+                  {collectedReports}
+                </h3>
+
+                <span>
+                  Reports completed
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
       </div>

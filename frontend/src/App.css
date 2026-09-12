@@ -1683,3 +1683,138 @@ body {
   outline: none;
   border-color: #4d7c50;
 }
+
+/* ADMIN OVERVIEW */
+
+.admin-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.overview-card {
+  background: white;
+  border: 1px solid #dce8dd;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.overview-header h2 {
+  margin: 5px 0 0;
+}
+
+.overview-icon {
+  font-size: 30px;
+}
+
+
+/* PRIORITY OVERVIEW */
+
+.priority-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.priority-overview-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #f7faf7;
+}
+
+.priority-overview-icon {
+  font-size: 25px;
+}
+
+.priority-overview-item p {
+  margin: 0 0 4px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.priority-overview-item h3 {
+  margin: 0 0 3px;
+  font-size: 24px;
+}
+
+.priority-overview-item span {
+  font-size: 12px;
+  color: #667066;
+}
+
+
+/* COLLECTION OVERVIEW */
+
+.collection-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.collection-overview-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #f7faf7;
+}
+
+.collection-icon {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 23px;
+}
+
+.collection-icon.pending {
+  background: #fff3cd;
+}
+
+.collection-icon.collected {
+  background: #e4f4e6;
+}
+
+.collection-overview-item p {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.collection-overview-item h3 {
+  margin: 0 0 3px;
+  font-size: 24px;
+}
+
+.collection-overview-item span {
+  font-size: 12px;
+  color: #667066;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+  .admin-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .priority-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
