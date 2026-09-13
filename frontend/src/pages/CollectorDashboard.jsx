@@ -24,7 +24,7 @@ function CollectorDashboard() {
         setError("");
 
         const response = await fetch(
-          "http://localhost:5000/api/reports"
+          "https://ai-waste-platform.onrender.com/api/reports"
         );
 
         const data = await response.json();
@@ -272,7 +272,7 @@ function CollectorDashboard() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/verify-collection",
+          "https://ai-waste-platform.onrender.com/api/verify-collection",
           {
             method: "POST",
 
@@ -396,7 +396,7 @@ function CollectorDashboard() {
 
       const response =
         await fetch(
-          `http://localhost:5000/api/reports/${reportId}`,
+          `https://ai-waste-platform.onrender.com/api/reports/${reportId}`,
           {
             method: "PUT",
 
@@ -523,7 +523,7 @@ function CollectorDashboard() {
 
       const response =
         await fetch(
-          `http://localhost:5000/api/reports/${report.id}`,
+          `https://ai-waste-platform.onrender.com/api/reports/${report.id}`,
           {
             method: "PUT",
 

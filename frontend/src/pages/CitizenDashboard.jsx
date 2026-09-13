@@ -30,7 +30,7 @@ function CitizenDashboard() {
 
         const response =
           await fetch(
-            "http://localhost:5000/api/reports"
+            "https://ai-waste-platform.onrender.com/api/reports"
           );
 
         const data =
@@ -122,7 +122,7 @@ function CitizenDashboard() {
 
       const response =
         await fetch(
-          `http://localhost:5000/api/reports/${reportId}`,
+          `https://ai-waste-platform.onrender.com/api/reports/${reportId}`,
           {
             method: "PUT",
 

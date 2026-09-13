@@ -176,7 +176,7 @@ function ReportGarbage() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/analyze-garbage",
+          "https://ai-waste-platform.onrender.com/api/analyze-garbage",
           {
             method: "POST",
 
@@ -372,7 +372,7 @@ function ReportGarbage() {
 
       const reportsResponse =
         await fetch(
-          "http://localhost:5000/api/reports"
+          "https://ai-waste-platform.onrender.com/api/reports"
         );
 
       const reportsData =
@@ -553,7 +553,7 @@ function ReportGarbage() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/check-duplicate",
+          "https://ai-waste-platform.onrender.com/api/check-duplicate",
           {
             method: "POST",
 
@@ -759,7 +759,7 @@ function ReportGarbage() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/reports",
+          "https://ai-waste-platform.onrender.com/api/reports",
           {
             method: "POST",
 
