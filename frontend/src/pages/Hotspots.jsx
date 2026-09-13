@@ -1,14 +1,70 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReportMap from "../components/ReportMap";
 
 function Hotspots() {
-  const [reports] = useState(() => {
-    return (
-      JSON.parse(
-        localStorage.getItem("garbageReports")
-      ) || []
-    );
-  });
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // --------------------------------------------------
+  // FETCH REPORTS FROM MONGODB
+  // --------------------------------------------------
+
+  useEffect(() => {
+    async function fetchReports() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          "http://localhost:5000/api/reports"
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Failed to fetch reports."
+          );
+        }
+
+        const normalizedReports =
+          data.map((report) => ({
+            ...report,
+
+            id:
+              report.reportId ||
+              report._id,
+          }));
+
+        setReports(
+          normalizedReports
+        );
+
+        console.log(
+          "Hotspot reports loaded from MongoDB:",
+          normalizedReports.length
+        );
+
+      } catch (error) {
+        console.error(
+          "Hotspot reports fetch error:",
+          error
+        );
+
+        setError(
+          "Unable to load hotspot reports from MongoDB."
+        );
+
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchReports();
+  }, []);
 
   function calculateDistance(
     lat1,
@@ -142,6 +198,108 @@ function Hotspots() {
   const hotspots =
     findHotspots();
 
+  // --------------------------------------------------
+  // LOADING STATE
+  // --------------------------------------------------
+
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+
+        <div className="dashboard-header">
+
+          <div>
+
+            <p className="dashboard-tag">
+              AI INSIGHTS
+            </p>
+
+            <h1>
+              Garbage Hotspots
+            </h1>
+
+            <p>
+              Loading hotspot data from MongoDB...
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="empty-reports">
+
+          <div className="empty-icon">
+            🔥
+          </div>
+
+          <h3>
+            Loading Hotspots
+          </h3>
+
+          <p>
+            Please wait while garbage reports
+            are being loaded.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // ERROR STATE
+  // --------------------------------------------------
+
+  if (error) {
+    return (
+      <div className="dashboard-page">
+
+        <div className="dashboard-header">
+
+          <div>
+
+            <p className="dashboard-tag">
+              AI INSIGHTS
+            </p>
+
+            <h1>
+              Garbage Hotspots
+            </h1>
+
+            <p>
+              Identify areas where garbage complaints
+              are repeatedly reported.
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="empty-reports">
+
+          <div className="empty-icon">
+            ⚠️
+          </div>
+
+          <h3>
+            Unable to Load Hotspots
+          </h3>
+
+          <p>
+            {error}
+          </p>
+
+          <p>
+            Make sure the backend server is running.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-page">
 
@@ -164,11 +322,9 @@ function Hotspots() {
         </div>
       </div>
 
-
       {/* MAP */}
 
       <ReportMap />
-
 
       {/* HOTSPOT SUMMARY */}
 
@@ -194,7 +350,6 @@ function Hotspots() {
 
         </div>
 
-
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -217,7 +372,6 @@ function Hotspots() {
 
       </div>
 
-
       {/* HOTSPOT LIST */}
 
       <div className="reports-section">
@@ -238,7 +392,6 @@ function Hotspots() {
 
         </div>
 
-
         {hotspots.length > 0 ? (
 
           <div className="hotspot-list">
@@ -254,7 +407,6 @@ function Hotspots() {
                   <div className="hotspot-icon">
                     🔥
                   </div>
-
 
                   <div className="hotspot-content">
 
@@ -272,7 +424,6 @@ function Hotspots() {
 
                       </div>
 
-
                       <span
                         className={`hotspot-risk ${hotspot.riskLevel.toLowerCase()}`}
                       >
@@ -280,7 +431,6 @@ function Hotspots() {
                       </span>
 
                     </div>
-
 
                     <div className="hotspot-info">
 
@@ -313,7 +463,6 @@ function Hotspots() {
                       </p>
 
                     </div>
-
 
                     <div className="hotspot-message">
 

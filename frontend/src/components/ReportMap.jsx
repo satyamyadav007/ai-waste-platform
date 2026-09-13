@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   MapContainer,
@@ -10,7 +10,6 @@ import {
 import L from "leaflet";
 
 import "leaflet/dist/leaflet.css";
-
 
 // --------------------------------------------------
 // DEFAULT LEAFLET MARKER ICONS
@@ -35,7 +34,6 @@ const defaultIcon = L.icon({
   shadowSize: [41, 41],
 });
 
-
 // --------------------------------------------------
 // PRIORITY ICONS
 // --------------------------------------------------
@@ -55,7 +53,6 @@ const highPriorityIcon =
     iconAnchor: [17, 17],
   });
 
-
 const mediumPriorityIcon =
   L.divIcon({
     className: "custom-map-marker",
@@ -70,7 +67,6 @@ const mediumPriorityIcon =
 
     iconAnchor: [17, 17],
   });
-
 
 const lowPriorityIcon =
   L.divIcon({
@@ -87,7 +83,6 @@ const lowPriorityIcon =
     iconAnchor: [17, 17],
   });
 
-
 const collectedIcon =
   L.divIcon({
     className: "custom-map-marker",
@@ -102,7 +97,6 @@ const collectedIcon =
 
     iconAnchor: [17, 17],
   });
-
 
 // --------------------------------------------------
 // GET MARKER ICON
@@ -140,22 +134,86 @@ function getMarkerIcon(report) {
   return defaultIcon;
 }
 
-
 // --------------------------------------------------
 // REPORT MAP
 // --------------------------------------------------
 
 function ReportMap({ showFilters = false }) {
-  const [reports] = useState(() => {
-    return (
-      JSON.parse(
-        localStorage.getItem(
-          "garbageReports"
-        )
-      ) || []
-    );
-  });
+  const [reports, setReports] =
+    useState([]);
 
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  // --------------------------------------------------
+  // FETCH REPORTS FROM MONGODB
+  // --------------------------------------------------
+
+  useEffect(() => {
+    async function fetchReports() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response =
+          await fetch(
+            "http://localhost:5000/api/reports"
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Failed to fetch reports."
+          );
+        }
+
+        // --------------------------------------------------
+        // NORMALIZE MONGODB REPORTS
+        // --------------------------------------------------
+
+        const normalizedReports =
+          data.map(
+            (report) => ({
+              ...report,
+
+              id:
+                report.reportId ||
+                report._id,
+            })
+          );
+
+        setReports(
+          normalizedReports
+        );
+
+        console.log(
+          "Map reports loaded from MongoDB:",
+          normalizedReports.length
+        );
+
+      } catch (error) {
+        console.error(
+          "Map reports fetch error:",
+          error
+        );
+
+        setError(
+          "Unable to load map reports from MongoDB."
+        );
+
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchReports();
+  }, []);
 
   // --------------------------------------------------
   // FILTER STATES
@@ -166,7 +224,6 @@ function ReportMap({ showFilters = false }) {
 
   const [priorityFilter, setPriorityFilter] =
     useState("All");
-
 
   // --------------------------------------------------
   // VALID REPORTS
@@ -191,7 +248,6 @@ function ReportMap({ showFilters = false }) {
         )
     );
 
-
   // --------------------------------------------------
   // FILTER REPORTS
   // --------------------------------------------------
@@ -200,10 +256,13 @@ function ReportMap({ showFilters = false }) {
     validReports.filter(
       (report) => {
 
+        // --------------------------------------------------
         // STATUS FILTER
+        // --------------------------------------------------
 
         if (
-          statusFilter !== "All"
+          statusFilter !==
+          "All"
         ) {
 
           if (
@@ -229,8 +288,9 @@ function ReportMap({ showFilters = false }) {
           }
         }
 
-
+        // --------------------------------------------------
         // PRIORITY FILTER
+        // --------------------------------------------------
 
         if (
           priorityFilter !==
@@ -250,11 +310,9 @@ function ReportMap({ showFilters = false }) {
           }
         }
 
-
         return true;
       }
     );
-
 
   // --------------------------------------------------
   // MAP CENTER
@@ -275,10 +333,56 @@ function ReportMap({ showFilters = false }) {
         ]
       : [28.6139, 77.2090];
 
+  // --------------------------------------------------
+  // LOADING STATE
+  // --------------------------------------------------
+
+  if (loading) {
+    return (
+      <div className="map-empty">
+
+        <div>
+          🗺️
+        </div>
+
+        <h3>
+          Loading Map
+        </h3>
+
+        <p>
+          Loading garbage reports from MongoDB...
+        </p>
+
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // ERROR STATE
+  // --------------------------------------------------
+
+  if (error) {
+    return (
+      <div className="map-empty">
+
+        <div>
+          ⚠️
+        </div>
+
+        <h3>
+          Unable to Load Map
+        </h3>
+
+        <p>
+          {error}
+        </p>
+
+      </div>
+    );
+  }
 
   return (
     <div className="report-map-container">
-
 
       {/* --------------------------------------------------
           ADMIN FILTERS
@@ -320,7 +424,6 @@ function ReportMap({ showFilters = false }) {
 
           </div>
 
-
           <div className="map-filter-group">
 
             <label htmlFor="priority-filter">
@@ -361,7 +464,6 @@ function ReportMap({ showFilters = false }) {
 
       )}
 
-
       {/* --------------------------------------------------
           MAP
       -------------------------------------------------- */}
@@ -382,12 +484,14 @@ function ReportMap({ showFilters = false }) {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-
             {filteredReports.map(
               (report) => (
 
                 <Marker
-                  key={report.id}
+                  key={
+                    report.id
+                  }
+
                   position={[
                     Number(
                       report.latitude
@@ -397,6 +501,7 @@ function ReportMap({ showFilters = false }) {
                       report.longitude
                     ),
                   ]}
+
                   icon={getMarkerIcon(
                     report
                   )}
@@ -410,7 +515,6 @@ function ReportMap({ showFilters = false }) {
                         Report #{report.id}
                       </strong>
 
-
                       <p>
                         <strong>
                           Garbage Type:
@@ -420,7 +524,6 @@ function ReportMap({ showFilters = false }) {
                         }
                       </p>
 
-
                       <p>
                         <strong>
                           Status:
@@ -429,7 +532,6 @@ function ReportMap({ showFilters = false }) {
                           report.status
                         }
                       </p>
-
 
                       {report.aiResult && (
                         <>
@@ -444,7 +546,6 @@ function ReportMap({ showFilters = false }) {
                             }
                           </p>
 
-
                           <p>
                             <strong>
                               AI Confidence:
@@ -458,13 +559,11 @@ function ReportMap({ showFilters = false }) {
                         </>
                       )}
 
-
                       <p>
                         <strong>
                           Location:
                         </strong>
                       </p>
-
 
                       <p>
                         {report.latitude},{" "}
@@ -482,8 +581,9 @@ function ReportMap({ showFilters = false }) {
 
           </MapContainer>
 
-
-          {/* MAP LEGEND */}
+          {/* --------------------------------------------------
+              MAP LEGEND
+          -------------------------------------------------- */}
 
           <div className="map-legend">
 
@@ -491,24 +591,20 @@ function ReportMap({ showFilters = false }) {
               Map Legend
             </strong>
 
-
             <div className="legend-item">
               <span>🔴</span>
               High Priority
             </div>
-
 
             <div className="legend-item">
               <span>🟠</span>
               Medium Priority
             </div>
 
-
             <div className="legend-item">
               <span>🟢</span>
               Low Priority
             </div>
-
 
             <div className="legend-item">
               <span>✅</span>

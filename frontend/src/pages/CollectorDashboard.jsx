@@ -13,7 +13,6 @@ function CollectorDashboard() {
   const [verificationLoading, setVerificationLoading] =
     useState({});
 
-
   // --------------------------------------------------
   // FETCH REPORTS FROM MONGODB
   // --------------------------------------------------
@@ -28,8 +27,7 @@ function CollectorDashboard() {
           "http://localhost:5000/api/reports"
         );
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
           throw new Error(
@@ -49,14 +47,6 @@ function CollectorDashboard() {
 
         setReports(
           normalizedReports
-        );
-
-        // Temporary compatibility for ReportMap
-        localStorage.setItem(
-          "garbageReports",
-          JSON.stringify(
-            normalizedReports
-          )
         );
 
         console.log(
@@ -82,7 +72,6 @@ function CollectorDashboard() {
     fetchReports();
   }, []);
 
-
   // --------------------------------------------------
   // FILE TO DATA URL
   // --------------------------------------------------
@@ -106,7 +95,6 @@ function CollectorDashboard() {
       }
     );
   }
-
 
   // --------------------------------------------------
   // PROOF IMAGE
@@ -175,7 +163,6 @@ function CollectorDashboard() {
     }
   }
 
-
   // --------------------------------------------------
   // DATA URL TO BASE64
   // --------------------------------------------------
@@ -196,7 +183,6 @@ function CollectorDashboard() {
           .split(":")[1],
     };
   }
-
 
   // --------------------------------------------------
   // AI COLLECTION VERIFICATION
@@ -360,7 +346,6 @@ function CollectorDashboard() {
     }
   }
 
-
   // --------------------------------------------------
   // MARK AS COLLECTED
   // --------------------------------------------------
@@ -400,7 +385,6 @@ function CollectorDashboard() {
       return;
     }
 
-
     // --------------------------------------------------
     // UPDATE REPORT IN MONGODB
     // --------------------------------------------------
@@ -435,16 +419,13 @@ function CollectorDashboard() {
           }
         );
 
-
       const data =
         await response.json();
-
 
       console.log(
         "MongoDB update response:",
         data
       );
-
 
       if (!response.ok) {
         alert(
@@ -454,7 +435,6 @@ function CollectorDashboard() {
 
         return;
       }
-
 
       // --------------------------------------------------
       // UPDATE FRONTEND STATE
@@ -487,23 +467,9 @@ function CollectorDashboard() {
           }
         );
 
-
       setReports(
         updatedReports
       );
-
-
-      // --------------------------------------------------
-      // TEMPORARY LOCALSTORAGE SYNC
-      // --------------------------------------------------
-
-      localStorage.setItem(
-        "garbageReports",
-        JSON.stringify(
-          updatedReports
-        )
-      );
-
 
       alert(
         "Garbage verified and marked as collected!"
@@ -521,7 +487,6 @@ function CollectorDashboard() {
       );
     }
   }
-
 
   // --------------------------------------------------
   // REPLACE EXISTING COLLECTION PROOF
@@ -552,11 +517,9 @@ function CollectorDashboard() {
         return;
       }
 
-
       console.log(
         "Replacing collection proof in MongoDB..."
       );
-
 
       const response =
         await fetch(
@@ -583,16 +546,13 @@ function CollectorDashboard() {
           }
         );
 
-
       const data =
         await response.json();
-
 
       console.log(
         "Proof replacement response:",
         data
       );
-
 
       if (!response.ok) {
         alert(
@@ -602,7 +562,6 @@ function CollectorDashboard() {
 
         return;
       }
-
 
       const updatedReports =
         reports.map(
@@ -625,19 +584,9 @@ function CollectorDashboard() {
           }
         );
 
-
       setReports(
         updatedReports
       );
-
-
-      localStorage.setItem(
-        "garbageReports",
-        JSON.stringify(
-          updatedReports
-        )
-      );
-
 
       alert(
         "Collection proof replaced successfully!"
@@ -655,7 +604,6 @@ function CollectorDashboard() {
       );
     }
   }
-
 
   // --------------------------------------------------
   // PRIORITY TEXT
@@ -688,7 +636,6 @@ function CollectorDashboard() {
 
     return "Priority Not Available";
   }
-
 
   // --------------------------------------------------
   // PRIORITY VALUE
@@ -726,7 +673,6 @@ function CollectorDashboard() {
     return 0;
   }
 
-
   // --------------------------------------------------
   // SORT REPORTS
   // --------------------------------------------------
@@ -742,7 +688,6 @@ function CollectorDashboard() {
 
       }
     );
-
 
   // --------------------------------------------------
   // LOADING STATE
@@ -773,7 +718,6 @@ function CollectorDashboard() {
 
         </div>
 
-
         <div className="empty-reports">
 
           <div className="empty-icon">
@@ -794,7 +738,6 @@ function CollectorDashboard() {
       </div>
     );
   }
-
 
   // --------------------------------------------------
   // ERROR STATE
@@ -827,7 +770,6 @@ function CollectorDashboard() {
 
         </div>
 
-
         <div className="empty-reports">
 
           <div className="empty-icon">
@@ -853,10 +795,8 @@ function CollectorDashboard() {
     );
   }
 
-
   return (
     <div className="dashboard-page">
-
 
       {/* --------------------------------------------------
           HEADER
@@ -883,7 +823,6 @@ function CollectorDashboard() {
         </div>
 
       </div>
-
 
       {/* --------------------------------------------------
           MAP
@@ -912,11 +851,9 @@ function CollectorDashboard() {
 
         </div>
 
-
         <ReportMap />
 
       </div>
-
 
       {/* --------------------------------------------------
           REPORTS
@@ -945,7 +882,6 @@ function CollectorDashboard() {
 
         </div>
 
-
         {sortedReports.length > 0 ? (
 
           <div className="reports-list">
@@ -959,7 +895,6 @@ function CollectorDashboard() {
                     report.id
                   }
                 >
-
 
                   {/* REPORT IMAGE */}
 
@@ -975,9 +910,7 @@ function CollectorDashboard() {
 
                   </div>
 
-
                   <div className="report-card-content">
-
 
                     {/* HEADER */}
 
@@ -997,7 +930,6 @@ function CollectorDashboard() {
 
                       </div>
 
-
                       <span className="report-status">
                         {
                           report.status
@@ -1006,7 +938,6 @@ function CollectorDashboard() {
 
                     </div>
 
-
                     {/* DESCRIPTION */}
 
                     <p className="report-description">
@@ -1014,7 +945,6 @@ function CollectorDashboard() {
                         report.description
                       }
                     </p>
-
 
                     {/* AI ANALYSIS */}
 
@@ -1038,7 +968,6 @@ function CollectorDashboard() {
 
                         </div>
 
-
                         <p>
                           <strong>
                             Garbage Detected:
@@ -1053,7 +982,6 @@ function CollectorDashboard() {
                           }
                         </p>
 
-
                         <p>
                           <strong>
                             AI Garbage Type:
@@ -1065,7 +993,6 @@ function CollectorDashboard() {
                               .garbageType
                           }
                         </p>
-
 
                         <p>
                           <strong>
@@ -1080,7 +1007,6 @@ function CollectorDashboard() {
 
                         </p>
 
-
                         <p>
                           <strong>
                             Severity:
@@ -1093,7 +1019,6 @@ function CollectorDashboard() {
                           }
 
                         </p>
-
 
                         <p>
                           <strong>
@@ -1112,7 +1037,6 @@ function CollectorDashboard() {
 
                     )}
 
-
                     {/* LOCATION */}
 
                     <div className="report-location">
@@ -1121,14 +1045,12 @@ function CollectorDashboard() {
                         📍 Location
                       </strong>
 
-
                       <p>
                         Latitude:{" "}
                         {
                           report.latitude
                         }
                       </p>
-
 
                       <p>
                         Longitude:{" "}
@@ -1138,7 +1060,6 @@ function CollectorDashboard() {
                       </p>
 
                     </div>
-
 
                     {/* DATE */}
 
@@ -1152,7 +1073,6 @@ function CollectorDashboard() {
 
                     </p>
 
-
                     {/* --------------------------------------------------
                         PENDING REPORT ACTIONS
                     -------------------------------------------------- */}
@@ -1161,7 +1081,6 @@ function CollectorDashboard() {
                       "Pending" && (
 
                       <div className="collector-action">
-
 
                         {/* PROOF UPLOAD */}
 
@@ -1183,7 +1102,6 @@ function CollectorDashboard() {
 
                         </label>
 
-
                         {/* PROOF PREVIEW */}
 
                         {proofImages[
@@ -1204,7 +1122,6 @@ function CollectorDashboard() {
                           </div>
 
                         )}
-
 
                         {/* AI VERIFICATION */}
 
@@ -1233,7 +1150,6 @@ function CollectorDashboard() {
 
                         </button>
 
-
                         {/* VERIFICATION RESULT */}
 
                         {verificationResults[
@@ -1245,7 +1161,6 @@ function CollectorDashboard() {
                             <h3>
                               🤖 AI Collection Verification
                             </h3>
-
 
                             <p>
 
@@ -1263,7 +1178,6 @@ function CollectorDashboard() {
 
                             </p>
 
-
                             <p>
 
                               <strong>
@@ -1277,7 +1191,6 @@ function CollectorDashboard() {
                               }%
 
                             </p>
-
 
                             <p>
 
@@ -1297,7 +1210,6 @@ function CollectorDashboard() {
 
                         )}
 
-
                         {/* MARK COLLECTED */}
 
                         <button
@@ -1316,7 +1228,6 @@ function CollectorDashboard() {
 
                     )}
 
-
                     {/* --------------------------------------------------
                         COLLECTED REPORT PROOF
                     -------------------------------------------------- */}
@@ -1329,7 +1240,6 @@ function CollectorDashboard() {
                         <strong>
                           Collection Proof
                         </strong>
-
 
                         {report.proofImage ? (
 
@@ -1348,7 +1258,6 @@ function CollectorDashboard() {
                           </p>
 
                         )}
-
 
                         {/* REPLACE PROOF */}
 
@@ -1374,7 +1283,6 @@ function CollectorDashboard() {
 
                     )}
 
-
                     {/* --------------------------------------------------
                         COLLECTED REPORT VERIFICATION
                     -------------------------------------------------- */}
@@ -1388,7 +1296,6 @@ function CollectorDashboard() {
                           <h3>
                             🤖 AI Verification
                           </h3>
-
 
                           <p>
 
@@ -1405,7 +1312,6 @@ function CollectorDashboard() {
 
                           </p>
 
-
                           <p>
 
                             <strong>
@@ -1418,7 +1324,6 @@ function CollectorDashboard() {
                             }%
 
                           </p>
-
 
                           <p>
 

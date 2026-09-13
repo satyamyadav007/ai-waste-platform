@@ -6,7 +6,6 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-
   // --------------------------------------------------
   // FETCH REPORTS FROM MONGODB
   // --------------------------------------------------
@@ -31,7 +30,6 @@ function AdminDashboard() {
           );
         }
 
-
         // --------------------------------------------------
         // NORMALIZE MONGODB REPORTS
         // MongoDB uses reportId, while the old frontend
@@ -47,25 +45,9 @@ function AdminDashboard() {
               report._id,
           }));
 
-
         setReports(
           normalizedReports
         );
-
-
-        // --------------------------------------------------
-        // TEMPORARY COMPATIBILITY
-        // ReportMap currently reads localStorage.
-        // Keep it synchronized with MongoDB data.
-        // --------------------------------------------------
-
-        localStorage.setItem(
-          "garbageReports",
-          JSON.stringify(
-            normalizedReports
-          )
-        );
-
 
         console.log(
           "Reports loaded from MongoDB:",
@@ -87,10 +69,8 @@ function AdminDashboard() {
       }
     }
 
-
     fetchReports();
   }, []);
-
 
   // --------------------------------------------------
   // LOADING STATE
@@ -140,7 +120,6 @@ function AdminDashboard() {
       </div>
     );
   }
-
 
   // --------------------------------------------------
   // ERROR STATE
@@ -195,7 +174,6 @@ function AdminDashboard() {
     );
   }
 
-
   // --------------------------------------------------
   // ADMIN STATISTICS
   // --------------------------------------------------
@@ -203,13 +181,11 @@ function AdminDashboard() {
   const totalReports =
     reports.length;
 
-
   const pendingReports =
     reports.filter(
       (report) =>
         report.status === "Pending"
     ).length;
-
 
   const collectedReports =
     reports.filter(
@@ -217,7 +193,6 @@ function AdminDashboard() {
         report.status === "Collected" ||
         report.status === "Resolved"
     ).length;
-
 
   const highPriorityReports =
     reports.filter(
@@ -227,7 +202,6 @@ function AdminDashboard() {
         report.status === "Pending"
     ).length;
 
-
   const mediumPriorityReports =
     reports.filter(
       (report) =>
@@ -235,7 +209,6 @@ function AdminDashboard() {
         report.aiResult.severity === "Medium" &&
         report.status === "Pending"
     ).length;
-
 
   const lowPriorityReports =
     reports.filter(
@@ -245,14 +218,12 @@ function AdminDashboard() {
         report.status === "Pending"
     ).length;
 
-
   const ratedReports =
     reports.filter(
       (report) =>
         report.rating !== null &&
         report.rating !== undefined
     );
-
 
   const averageRating =
     ratedReports.length > 0
@@ -265,7 +236,6 @@ function AdminDashboard() {
           ) / ratedReports.length
         ).toFixed(1)
       : "0.0";
-
 
   // --------------------------------------------------
   // DISTANCE CALCULATION
@@ -328,7 +298,6 @@ function AdminDashboard() {
     );
   }
 
-
   // --------------------------------------------------
   // FIND HOTSPOTS
   // --------------------------------------------------
@@ -350,7 +319,6 @@ function AdminDashboard() {
           return;
         }
 
-
         if (
           usedReports.has(
             report.id
@@ -358,7 +326,6 @@ function AdminDashboard() {
         ) {
           return;
         }
-
 
         const nearbyReports =
           reports.filter(
@@ -372,7 +339,6 @@ function AdminDashboard() {
               ) {
                 return false;
               }
-
 
               const distance =
                 calculateDistance(
@@ -390,13 +356,11 @@ function AdminDashboard() {
                   )
                 );
 
-
               return (
                 distance <= 100
               );
             }
           );
-
 
         if (
           nearbyReports.length >=
@@ -410,7 +374,6 @@ function AdminDashboard() {
               );
             }
           );
-
 
           hotspots.push({
 
@@ -430,10 +393,8 @@ function AdminDashboard() {
       }
     );
 
-
     return hotspots;
   }
-
 
   // --------------------------------------------------
   // HOTSPOT RISK
@@ -451,17 +412,14 @@ function AdminDashboard() {
       return "High";
     }
 
-
     if (
       reportCount >= 3
     ) {
       return "Medium";
     }
 
-
     return "Low";
   }
-
 
   // --------------------------------------------------
   // MOST COMMON GARBAGE
@@ -474,14 +432,12 @@ function AdminDashboard() {
     const garbageCounts =
       {};
 
-
     hotspotReports.forEach(
       (report) => {
 
         const garbageType =
           report.garbageType ||
           "Unknown";
-
 
         garbageCounts[
           garbageType
@@ -495,13 +451,11 @@ function AdminDashboard() {
       }
     );
 
-
     let mostCommon =
       "Unknown";
 
     let highestCount =
       0;
-
 
     Object.entries(
       garbageCounts
@@ -523,10 +477,8 @@ function AdminDashboard() {
       }
     );
 
-
     return mostCommon;
   }
-
 
   // --------------------------------------------------
   // HOTSPOT INTELLIGENCE
@@ -549,14 +501,12 @@ function AdminDashboard() {
                 "Pending"
           ).length;
 
-
         const pendingCount =
           hotspot.reports.filter(
             (report) =>
               report.status ===
               "Pending"
           ).length;
-
 
         const collectedCount =
           hotspot.reports.filter(
@@ -567,23 +517,19 @@ function AdminDashboard() {
                 "Resolved"
           ).length;
 
-
         const riskLevel =
           getHotspotRisk(
             hotspot.reportCount,
             highPriorityCount
           );
 
-
         const commonGarbage =
           getMostCommonGarbage(
             hotspot.reports
           );
 
-
         const firstReport =
           hotspot.reports[0];
-
 
         return {
 
@@ -620,14 +566,11 @@ function AdminDashboard() {
       }
     );
 
-
   const hotspotCount =
     hotspotData.length;
 
-
   return (
     <div className="dashboard-page">
-
 
       {/* --------------------------------------------------
           HEADER
@@ -653,7 +596,6 @@ function AdminDashboard() {
         </div>
 
       </div>
-
 
       {/* --------------------------------------------------
           ADMIN STATISTICS
@@ -681,7 +623,6 @@ function AdminDashboard() {
 
         </div>
 
-
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -701,7 +642,6 @@ function AdminDashboard() {
           </div>
 
         </div>
-
 
         <div className="stat-card">
 
@@ -723,7 +663,6 @@ function AdminDashboard() {
 
         </div>
 
-
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -744,7 +683,6 @@ function AdminDashboard() {
 
         </div>
 
-
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -764,7 +702,6 @@ function AdminDashboard() {
           </div>
 
         </div>
-
 
         <div className="stat-card">
 
@@ -788,13 +725,11 @@ function AdminDashboard() {
 
       </div>
 
-
       {/* --------------------------------------------------
           PRIORITY + COLLECTION OVERVIEW
       -------------------------------------------------- */}
 
       <div className="admin-overview">
-
 
         {/* PRIORITY */}
 
@@ -820,9 +755,7 @@ function AdminDashboard() {
 
           </div>
 
-
           <div className="priority-overview-grid">
-
 
             <div className="priority-overview-item high">
 
@@ -848,7 +781,6 @@ function AdminDashboard() {
 
             </div>
 
-
             <div className="priority-overview-item medium">
 
               <div className="priority-overview-icon">
@@ -872,7 +804,6 @@ function AdminDashboard() {
               </div>
 
             </div>
-
 
             <div className="priority-overview-item low">
 
@@ -902,7 +833,6 @@ function AdminDashboard() {
 
         </div>
 
-
         {/* COLLECTION */}
 
         <div className="overview-card">
@@ -927,9 +857,7 @@ function AdminDashboard() {
 
           </div>
 
-
           <div className="collection-overview">
-
 
             <div className="collection-overview-item">
 
@@ -955,7 +883,6 @@ function AdminDashboard() {
 
             </div>
 
-
             <div className="collection-overview-item">
 
               <div className="collection-icon collected">
@@ -980,13 +907,11 @@ function AdminDashboard() {
 
             </div>
 
-
           </div>
 
         </div>
 
       </div>
-
 
       {/* --------------------------------------------------
           HOTSPOT INTELLIGENCE
@@ -1015,7 +940,6 @@ function AdminDashboard() {
 
         </div>
 
-
         {hotspotData.length > 0 ? (
 
           <div className="hotspot-intelligence-grid">
@@ -1042,7 +966,6 @@ function AdminDashboard() {
 
                     </div>
 
-
                     <span
                       className={`hotspot-risk-badge ${hotspot.riskLevel.toLowerCase()}`}
                     >
@@ -1050,7 +973,6 @@ function AdminDashboard() {
                     </span>
 
                   </div>
-
 
                   <div className="hotspot-main-count">
 
@@ -1064,9 +986,7 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="hotspot-details-grid">
-
 
                     <div>
 
@@ -1084,7 +1004,6 @@ function AdminDashboard() {
 
                     </div>
 
-
                     <div>
 
                       <span>
@@ -1100,7 +1019,6 @@ function AdminDashboard() {
                       </strong>
 
                     </div>
-
 
                     <div>
 
@@ -1118,7 +1036,6 @@ function AdminDashboard() {
 
                     </div>
 
-
                     <div>
 
                       <span>
@@ -1135,9 +1052,7 @@ function AdminDashboard() {
 
                     </div>
 
-
                   </div>
-
 
                   <div className="hotspot-location">
 
@@ -1182,7 +1097,6 @@ function AdminDashboard() {
 
       </div>
 
-
       {/* --------------------------------------------------
           ADMIN MAP
       -------------------------------------------------- */}
@@ -1210,13 +1124,11 @@ function AdminDashboard() {
 
         </div>
 
-
         <ReportMap
           showFilters={true}
         />
 
       </div>
-
 
       {/* --------------------------------------------------
           RECENT ACTIVITY
@@ -1240,7 +1152,6 @@ function AdminDashboard() {
 
         </div>
 
-
         {reports.length > 0 ? (
 
           <div className="reports-list">
@@ -1257,18 +1168,17 @@ function AdminDashboard() {
                     }
                   >
 
-
                     <div className="report-card-image">
 
                       <img
                         src={
+                          report.originalImageData ||
                           report.image
                         }
                         alt="Reported garbage"
                       />
 
                     </div>
-
 
                     <div className="report-card-content">
 
@@ -1288,7 +1198,6 @@ function AdminDashboard() {
 
                         </div>
 
-
                         <span className="report-status">
                           {
                             report.status
@@ -1297,13 +1206,11 @@ function AdminDashboard() {
 
                       </div>
 
-
                       <p className="report-description">
                         {
                           report.description
                         }
                       </p>
-
 
                       {report.aiResult && (
 
@@ -1325,7 +1232,6 @@ function AdminDashboard() {
 
                           </div>
 
-
                           <p>
 
                             <strong>
@@ -1342,7 +1248,6 @@ function AdminDashboard() {
 
                           </p>
 
-
                           <p>
 
                             <strong>
@@ -1356,7 +1261,6 @@ function AdminDashboard() {
                             }%
 
                           </p>
-
 
                           <p>
 
@@ -1376,13 +1280,11 @@ function AdminDashboard() {
 
                       )}
 
-
                       <div className="report-location">
 
                         <strong>
                           📍 Location
                         </strong>
-
 
                         <p>
                           Latitude:{" "}
@@ -1390,7 +1292,6 @@ function AdminDashboard() {
                             report.latitude
                           }
                         </p>
-
 
                         <p>
                           Longitude:{" "}
@@ -1401,7 +1302,6 @@ function AdminDashboard() {
 
                       </div>
 
-
                       <p className="report-date">
 
                         📅 Submitted:{" "}
@@ -1411,7 +1311,6 @@ function AdminDashboard() {
                         ).toLocaleString()}
 
                       </p>
-
 
                       {report.rating && (
 
@@ -1424,7 +1323,6 @@ function AdminDashboard() {
                           {
                             report.rating
                           }/5
-
 
                           {report.feedback && (
 

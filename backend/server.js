@@ -10,7 +10,6 @@ const { GoogleGenAI } = require("@google/genai");
 
 dotenv.config();
 
-
 // --------------------------------------------------
 // NODE DNS CONFIGURATION
 // --------------------------------------------------
@@ -19,7 +18,6 @@ dns.setServers([
   "8.8.8.8",
   "1.1.1.1",
 ]);
-
 
 const app = express();
 
@@ -30,7 +28,6 @@ app.use(
     limit: "50mb",
   })
 );
-
 
 // --------------------------------------------------
 // MONGODB CONNECTION
@@ -53,7 +50,6 @@ mongoose
     );
   });
 
-
 // --------------------------------------------------
 // GEMINI AI
 // --------------------------------------------------
@@ -61,7 +57,6 @@ mongoose
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
-
 
 // --------------------------------------------------
 // GEMINI AI RETRY FUNCTION
@@ -87,7 +82,6 @@ async function generateAIContent(
         error.message
       );
 
-
       // --------------------------------------------------
       // QUOTA ERROR
       // Do NOT retry 429 errors.
@@ -101,7 +95,6 @@ async function generateAIContent(
         throw error;
       }
 
-
       // --------------------------------------------------
       // OTHER NON-RETRYABLE ERRORS
       // --------------------------------------------------
@@ -109,7 +102,6 @@ async function generateAIContent(
       if (error.status !== 503) {
         throw error;
       }
-
 
       // --------------------------------------------------
       // RETRY ONLY 503 ERRORS
@@ -119,7 +111,6 @@ async function generateAIContent(
         throw error;
       }
 
-
       const waitTime =
         attempt * 3000;
 
@@ -128,7 +119,6 @@ async function generateAIContent(
           waitTime / 1000
         } seconds...`
       );
-
 
       await new Promise(
         (resolve) =>
@@ -140,7 +130,6 @@ async function generateAIContent(
     }
   }
 }
-
 
 // --------------------------------------------------
 // HOME / SERVER TEST
@@ -164,7 +153,69 @@ app.put(
         status,
         proofImage,
         verification,
+        rating,
+        feedback,
       } = req.body;
+
+      // --------------------------------------------------
+      // BUILD ONLY THE FIELDS THAT WERE PROVIDED
+      // --------------------------------------------------
+
+      const updateFields = {};
+
+      if (status !== undefined) {
+        updateFields.status = status;
+      }
+
+      if (proofImage !== undefined) {
+        updateFields.proofImage = proofImage;
+      }
+
+      if (verification !== undefined) {
+        updateFields.verification = verification;
+      }
+
+      if (rating !== undefined) {
+        updateFields.rating = rating;
+      }
+
+      if (feedback !== undefined) {
+        updateFields.feedback = feedback;
+      }
+
+      // --------------------------------------------------
+      // VALIDATION
+      // --------------------------------------------------
+
+      if (
+        Object.keys(updateFields).length === 0
+      ) {
+        return res.status(400).json({
+          message:
+            "No fields were provided for update.",
+        });
+      }
+
+      // --------------------------------------------------
+      // VALIDATE RATING
+      // --------------------------------------------------
+
+      if (rating !== undefined) {
+        if (
+          typeof rating !== "number" ||
+          rating < 1 ||
+          rating > 5
+        ) {
+          return res.status(400).json({
+            message:
+              "Rating must be a number between 1 and 5.",
+          });
+        }
+      }
+
+      // --------------------------------------------------
+      // UPDATE MONGODB
+      // --------------------------------------------------
 
       const updatedReport =
         await GarbageReport.findOneAndUpdate(
@@ -173,19 +224,11 @@ app.put(
               req.params.reportId,
           },
           {
-            $set: {
-              status:
-                status,
-
-              proofImage:
-                proofImage,
-
-              verification:
-                verification,
-            },
+            $set: updateFields,
           },
           {
             new: true,
+            runValidators: true,
           }
         );
 
@@ -199,6 +242,11 @@ app.put(
       console.log(
         "Garbage report updated in MongoDB:",
         updatedReport.reportId
+      );
+
+      console.log(
+        "Updated fields:",
+        Object.keys(updateFields)
       );
 
       res.status(200).json({
@@ -239,20 +287,16 @@ app.post(
           req.body
         );
 
-
       const savedReport =
         await report.save();
-
 
       console.log(
         "Garbage report saved to MongoDB:"
       );
 
-
       console.log(
         savedReport.reportId
       );
-
 
       res.status(201).json({
         message:
@@ -267,7 +311,6 @@ app.post(
         "Error saving garbage report:",
         error
       );
-
 
       res.status(500).json({
         message:
@@ -331,7 +374,6 @@ app.post(
         mimeType,
       } = req.body;
 
-
       if (
         !image ||
         !mimeType
@@ -342,22 +384,18 @@ app.post(
         });
       }
 
-
       console.log(
         "Received image for AI analysis."
       );
-
 
       const response =
         await generateAIContent({
           model:
             "gemini-3.6-flash",
 
-
           contents: [
             {
               role: "user",
-
 
               parts: [
                 {
@@ -369,7 +407,6 @@ app.post(
                       image,
                   },
                 },
-
 
                 {
                   text: `
@@ -385,21 +422,17 @@ give a confidence score, and provide a short description.
             },
           ],
 
-
           config: {
             responseMimeType:
               "application/json",
 
-
             responseSchema: {
               type: "object",
-
 
               properties: {
                 garbageDetected: {
                   type: "boolean",
                 },
-
 
                 garbageType: {
                   type: "string",
@@ -415,11 +448,9 @@ give a confidence score, and provide a short description.
                   ],
                 },
 
-
                 confidence: {
                   type: "integer",
                 },
-
 
                 severity: {
                   type: "string",
@@ -431,12 +462,10 @@ give a confidence score, and provide a short description.
                   ],
                 },
 
-
                 description: {
                   type: "string",
                 },
               },
-
 
               required: [
                 "garbageDetected",
@@ -449,27 +478,21 @@ give a confidence score, and provide a short description.
           },
         });
 
-
       const text =
         response.text;
-
 
       console.log(
         "AI Response:"
       );
 
-
       console.log(text);
-
 
       const result =
         JSON.parse(text);
 
-
       console.log(
         "Sending AI result to frontend."
       );
-
 
       res.json(result);
 
@@ -479,14 +502,12 @@ give a confidence score, and provide a short description.
         error
       );
 
-
       if (error.status === 429) {
         return res.status(429).json({
           message:
             "Gemini AI daily quota has been exceeded. Please try again later.",
         });
       }
-
 
       res.status(500).json({
         message:
@@ -498,7 +519,6 @@ give a confidence score, and provide a short description.
     }
   }
 );
-
 
 // --------------------------------------------------
 // AI BEFORE VS AFTER VERIFICATION
@@ -515,7 +535,6 @@ app.post(
         afterMimeType,
       } = req.body;
 
-
       if (
         !beforeImage ||
         !beforeMimeType ||
@@ -528,22 +547,18 @@ app.post(
         });
       }
 
-
       console.log(
         "Received before/after images for verification."
       );
-
 
       const response =
         await generateAIContent({
           model:
             "gemini-3.6-flash",
 
-
           contents: [
             {
               role: "user",
-
 
               parts: [
                 {
@@ -556,7 +571,6 @@ app.post(
                   },
                 },
 
-
                 {
                   inlineData: {
                     mimeType:
@@ -566,7 +580,6 @@ app.post(
                       afterImage,
                   },
                 },
-
 
                 {
                   text: `
@@ -596,32 +609,26 @@ Return JSON with:
             },
           ],
 
-
           config: {
             responseMimeType:
               "application/json",
 
-
             responseSchema: {
               type: "object",
-
 
               properties: {
                 garbageRemoved: {
                   type: "boolean",
                 },
 
-
                 confidence: {
                   type: "integer",
                 },
-
 
                 explanation: {
                   type: "string",
                 },
               },
-
 
               required: [
                 "garbageRemoved",
@@ -632,27 +639,21 @@ Return JSON with:
           },
         });
 
-
       const text =
         response.text;
-
 
       console.log(
         "AI Verification Response:"
       );
 
-
       console.log(text);
-
 
       const result =
         JSON.parse(text);
 
-
       console.log(
         "Sending verification result to frontend."
       );
-
 
       res.json(result);
 
@@ -662,14 +663,12 @@ Return JSON with:
         error
       );
 
-
       if (error.status === 429) {
         return res.status(429).json({
           message:
             "Gemini AI daily quota has been exceeded. Please try again later.",
         });
       }
-
 
       res.status(500).json({
         message:
@@ -681,7 +680,6 @@ Return JSON with:
     }
   }
 );
-
 
 // --------------------------------------------------
 // AI DUPLICATE COMPLAINT DETECTION
@@ -697,7 +695,6 @@ app.post(
         existingReports,
       } = req.body;
 
-
       if (
         !currentImage ||
         !currentMimeType
@@ -707,7 +704,6 @@ app.post(
             "Current report image is required.",
         });
       }
-
 
       if (
         !existingReports ||
@@ -725,11 +721,9 @@ app.post(
         });
       }
 
-
       console.log(
         "Checking for duplicate complaints."
       );
-
 
       const parts = [
         {
@@ -741,7 +735,6 @@ app.post(
               currentImage,
           },
         },
-
 
         {
           text: `
@@ -772,7 +765,6 @@ Previous report information:
         },
       ];
 
-
       for (
         const report of existingReports
       ) {
@@ -793,7 +785,6 @@ ${report.description}
 `,
         });
 
-
         if (
           report.image &&
           report.mimeType
@@ -812,19 +803,16 @@ ${report.description}
         }
       }
 
-
       parts.push({
         text: `
 Return JSON according to the provided schema.
 `,
       });
 
-
       const response =
         await generateAIContent({
           model:
             "gemini-3.6-flash",
-
 
           contents: [
             {
@@ -835,32 +823,26 @@ Return JSON according to the provided schema.
             },
           ],
 
-
           config: {
             responseMimeType:
               "application/json",
 
-
             responseSchema: {
               type: "object",
-
 
               properties: {
                 duplicateDetected: {
                   type: "boolean",
                 },
 
-
                 confidence: {
                   type: "integer",
                 },
-
 
                 reason: {
                   type: "string",
                 },
               },
-
 
               required: [
                 "duplicateDetected",
@@ -871,22 +853,17 @@ Return JSON according to the provided schema.
           },
         });
 
-
       const text =
         response.text;
-
 
       console.log(
         "Duplicate AI Response:"
       );
 
-
       console.log(text);
-
 
       const result =
         JSON.parse(text);
-
 
       res.json(result);
 
@@ -896,14 +873,12 @@ Return JSON according to the provided schema.
         error
       );
 
-
       if (error.status === 429) {
         return res.status(429).json({
           message:
-            "Gemini AI daily quota has been exceeded. Please try again later.",
+            "Gemini API daily quota has been exceeded. Please try again later.",
         });
       }
-
 
       res.status(500).json({
         message:
@@ -915,7 +890,6 @@ Return JSON according to the provided schema.
     }
   }
 );
-
 
 // --------------------------------------------------
 // START SERVER

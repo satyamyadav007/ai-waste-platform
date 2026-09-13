@@ -8,7 +8,6 @@ function CitizenDashboard() {
   const [ratings, setRatings] = useState({});
   const [feedback, setFeedback] = useState({});
 
-
   // --------------------------------------------------
   // FETCH CITIZEN REPORTS FROM MONGODB
   // --------------------------------------------------
@@ -29,16 +28,13 @@ function CitizenDashboard() {
           return;
         }
 
-
         const response =
           await fetch(
             "http://localhost:5000/api/reports"
           );
 
-
         const data =
           await response.json();
-
 
         if (!response.ok) {
           throw new Error(
@@ -46,7 +42,6 @@ function CitizenDashboard() {
               "Failed to fetch reports."
           );
         }
-
 
         // --------------------------------------------------
         // ONLY SHOW CURRENT CITIZEN'S REPORTS
@@ -70,35 +65,9 @@ function CitizenDashboard() {
               })
             );
 
-
         setReports(
           citizenReports
         );
-
-
-        // --------------------------------------------------
-        // TEMPORARY LOCAL STORAGE SYNC
-        // --------------------------------------------------
-
-        const allReports =
-          data.map(
-            (report) => ({
-              ...report,
-
-              id:
-                report.reportId ||
-                report._id,
-            })
-          );
-
-
-        localStorage.setItem(
-          "garbageReports",
-          JSON.stringify(
-            allReports
-          )
-        );
-
 
         console.log(
           "Citizen reports loaded from MongoDB:",
@@ -121,10 +90,8 @@ function CitizenDashboard() {
       }
     }
 
-
     fetchReports();
   }, []);
-
 
   // --------------------------------------------------
   // SUBMIT RATING
@@ -136,7 +103,6 @@ function CitizenDashboard() {
     const selectedRating =
       ratings[reportId];
 
-
     if (!selectedRating) {
       alert(
         "Please select a rating first."
@@ -145,17 +111,14 @@ function CitizenDashboard() {
       return;
     }
 
-
     const selectedFeedback =
       feedback[reportId] || "";
-
 
     try {
 
       console.log(
         "Saving rating to MongoDB..."
       );
-
 
       const response =
         await fetch(
@@ -178,10 +141,8 @@ function CitizenDashboard() {
           }
         );
 
-
       const data =
         await response.json();
-
 
       if (!response.ok) {
         alert(
@@ -191,7 +152,6 @@ function CitizenDashboard() {
 
         return;
       }
-
 
       // --------------------------------------------------
       // UPDATE FRONTEND STATE
@@ -221,11 +181,9 @@ function CitizenDashboard() {
           }
         );
 
-
       setReports(
         updatedReports
       );
-
 
       alert(
         "Thank you! Your rating has been submitted."
@@ -243,7 +201,6 @@ function CitizenDashboard() {
       );
     }
   }
-
 
   // --------------------------------------------------
   // GARBAGE TYPE NAME
@@ -278,7 +235,6 @@ function CitizenDashboard() {
     );
   }
 
-
   // --------------------------------------------------
   // STATISTICS
   // --------------------------------------------------
@@ -286,14 +242,12 @@ function CitizenDashboard() {
   const totalReports =
     reports.length;
 
-
   const pendingReports =
     reports.filter(
       (report) =>
         report.status ===
         "Pending"
     ).length;
-
 
   const resolvedReports =
     reports.filter(
@@ -303,7 +257,6 @@ function CitizenDashboard() {
         report.status ===
           "Resolved"
     ).length;
-
 
   // --------------------------------------------------
   // LOADING STATE
@@ -333,7 +286,6 @@ function CitizenDashboard() {
 
         </div>
 
-
         <div className="empty-reports">
 
           <div className="empty-icon">
@@ -354,7 +306,6 @@ function CitizenDashboard() {
       </div>
     );
   }
-
 
   // --------------------------------------------------
   // ERROR STATE
@@ -385,7 +336,6 @@ function CitizenDashboard() {
 
         </div>
 
-
         <div className="empty-reports">
 
           <div className="empty-icon">
@@ -411,10 +361,8 @@ function CitizenDashboard() {
     );
   }
 
-
   return (
     <div className="dashboard-page">
-
 
       {/* --------------------------------------------------
           HEADER
@@ -439,7 +387,6 @@ function CitizenDashboard() {
 
         </div>
 
-
         <a
           href="/report"
           className="dashboard-report-btn"
@@ -448,7 +395,6 @@ function CitizenDashboard() {
         </a>
 
       </div>
-
 
       {/* --------------------------------------------------
           STATISTICS
@@ -476,7 +422,6 @@ function CitizenDashboard() {
 
         </div>
 
-
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -496,7 +441,6 @@ function CitizenDashboard() {
           </div>
 
         </div>
-
 
         <div className="stat-card">
 
@@ -520,7 +464,6 @@ function CitizenDashboard() {
 
       </div>
 
-
       {/* --------------------------------------------------
           MY REPORTS
       -------------------------------------------------- */}
@@ -543,7 +486,6 @@ function CitizenDashboard() {
 
         </div>
 
-
         {reports.length > 0 ? (
 
           <div className="reports-list">
@@ -557,7 +499,6 @@ function CitizenDashboard() {
                     report.id
                   }
                 >
-
 
                   {/* --------------------------------------------------
                       REPORT IMAGE
@@ -575,13 +516,11 @@ function CitizenDashboard() {
 
                   </div>
 
-
                   {/* --------------------------------------------------
                       REPORT CONTENT
                   -------------------------------------------------- */}
 
                   <div className="report-card-content">
-
 
                     {/* HEADER */}
 
@@ -603,7 +542,6 @@ function CitizenDashboard() {
 
                       </div>
 
-
                       <span className="report-status">
                         {
                           report.status
@@ -611,7 +549,6 @@ function CitizenDashboard() {
                       </span>
 
                     </div>
-
 
                     {/* DESCRIPTION */}
 
@@ -621,7 +558,6 @@ function CitizenDashboard() {
                       }
                     </p>
 
-
                     {/* LOCATION */}
 
                     <div className="report-location">
@@ -630,14 +566,12 @@ function CitizenDashboard() {
                         📍 Location
                       </strong>
 
-
                       <p>
                         Latitude:{" "}
                         {
                           report.latitude
                         }
                       </p>
-
 
                       <p>
                         Longitude:{" "}
@@ -647,7 +581,6 @@ function CitizenDashboard() {
                       </p>
 
                     </div>
-
 
                     {/* DATE */}
 
@@ -661,7 +594,6 @@ function CitizenDashboard() {
 
                     </p>
 
-
                     {/* --------------------------------------------------
                         COLLECTED REPORT
                     -------------------------------------------------- */}
@@ -670,7 +602,6 @@ function CitizenDashboard() {
                       "Collected" && (
 
                       <div className="citizen-proof">
-
 
                         <div className="citizen-proof-header">
 
@@ -683,7 +614,6 @@ function CitizenDashboard() {
                           </span>
 
                         </div>
-
 
                         {report.proofImage && (
 
@@ -700,7 +630,6 @@ function CitizenDashboard() {
 
                     )}
 
-
                     {/* --------------------------------------------------
                         RATING
                     -------------------------------------------------- */}
@@ -714,7 +643,6 @@ function CitizenDashboard() {
                           ⭐ Rate Collector
                         </h3>
 
-
                         {report.rating ? (
 
                           <div className="rating-submitted">
@@ -726,7 +654,6 @@ function CitizenDashboard() {
                               }
                               /5 ⭐
                             </strong>
-
 
                             {report.feedback && (
 
@@ -745,7 +672,6 @@ function CitizenDashboard() {
                         ) : (
 
                           <>
-
 
                             {/* STARS */}
 
@@ -788,7 +714,6 @@ function CitizenDashboard() {
 
                             </div>
 
-
                             {/* FEEDBACK */}
 
                             <textarea
@@ -815,7 +740,6 @@ function CitizenDashboard() {
                               }
                               rows="3"
                             ></textarea>
-
 
                             {/* SUBMIT */}
 

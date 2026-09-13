@@ -21,7 +21,6 @@ function ReportGarbage() {
   const [duplicateLoading, setDuplicateLoading] =
     useState(false);
 
-
   // --------------------------------------------------
   // COMPRESS IMAGE
   // --------------------------------------------------
@@ -92,7 +91,6 @@ function ReportGarbage() {
     });
   }
 
-
   // --------------------------------------------------
   // IMAGE CHANGE
   // --------------------------------------------------
@@ -139,7 +137,6 @@ function ReportGarbage() {
       );
     }
   }
-
 
   // --------------------------------------------------
   // AI GARBAGE ANALYSIS
@@ -247,7 +244,6 @@ function ReportGarbage() {
     }
   }
 
-
   // --------------------------------------------------
   // CALCULATE DISTANCE
   // --------------------------------------------------
@@ -303,7 +299,6 @@ function ReportGarbage() {
     );
   }
 
-
   // --------------------------------------------------
   // GET BASE64 PARTS
   // --------------------------------------------------
@@ -338,7 +333,6 @@ function ReportGarbage() {
     };
   }
 
-
   // --------------------------------------------------
   // CHECK DUPLICATE
   // --------------------------------------------------
@@ -368,17 +362,52 @@ function ReportGarbage() {
     setDuplicateResult(null);
 
     try {
-      const allReports =
-        JSON.parse(
-          localStorage.getItem(
-            "garbageReports"
-          )
-        ) || [];
+      // --------------------------------------------------
+      // FETCH PREVIOUS REPORTS FROM MONGODB
+      // --------------------------------------------------
 
       console.log(
-        "Total stored reports:",
+        "Fetching previous reports from MongoDB..."
+      );
+
+      const reportsResponse =
+        await fetch(
+          "http://localhost:5000/api/reports"
+        );
+
+      const reportsData =
+        await reportsResponse.json();
+
+      if (!reportsResponse.ok) {
+        throw new Error(
+          reportsData.message ||
+            "Failed to fetch previous reports."
+        );
+      }
+
+      // --------------------------------------------------
+      // NORMALIZE MONGODB REPORTS
+      // --------------------------------------------------
+
+      const allReports =
+        reportsData.map(
+          (report) => ({
+            ...report,
+
+            id:
+              report.reportId ||
+              report._id,
+          })
+        );
+
+      console.log(
+        "Reports fetched from MongoDB:",
         allReports.length
       );
+
+      // --------------------------------------------------
+      // FIND NEARBY REPORTS
+      // --------------------------------------------------
 
       const nearbyReports =
         allReports
@@ -452,6 +481,10 @@ function ReportGarbage() {
         return;
       }
 
+      // --------------------------------------------------
+      // NO NEARBY REPORTS
+      // --------------------------------------------------
+
       if (
         nearbyReports.length === 0
       ) {
@@ -472,6 +505,10 @@ function ReportGarbage() {
 
         return;
       }
+
+      // --------------------------------------------------
+      // PREPARE EXISTING REPORTS FOR AI
+      // --------------------------------------------------
 
       const existingReports =
         nearbyReports
@@ -588,7 +625,6 @@ function ReportGarbage() {
     }
   }
 
-
   // --------------------------------------------------
   // GET LOCATION
   // --------------------------------------------------
@@ -634,7 +670,6 @@ function ReportGarbage() {
       }
     );
   }
-
 
   // --------------------------------------------------
   // SAVE REPORT
@@ -717,7 +752,6 @@ function ReportGarbage() {
         "",
     };
 
-
     try {
       console.log(
         "Sending garbage report to MongoDB..."
@@ -741,16 +775,13 @@ function ReportGarbage() {
           }
         );
 
-
       const data =
         await response.json();
-
 
       console.log(
         "MongoDB report response:",
         data
       );
-
 
       if (!response.ok) {
         alert(
@@ -761,86 +792,21 @@ function ReportGarbage() {
         return;
       }
 
-
       // --------------------------------------------------
-      // KEEP LOCALSTORAGE FOR NOW
-      // This keeps the existing dashboards working
-      // during the MongoDB migration.
+      // REPORT IS NOW STORED ONLY IN MONGODB
       // --------------------------------------------------
-
-      const localReport = {
-        id:
-          reportId,
-
-        image:
-          image,
-
-        originalImageData:
-          originalImageData,
-
-        garbageType:
-          garbageType,
-
-        description:
-          description,
-
-        latitude:
-          location.latitude,
-
-        longitude:
-          location.longitude,
-
-        status:
-          "Pending",
-
-        createdAt:
-          new Date().toISOString(),
-
-        userEmail:
-          loggedInUser.email,
-
-        aiResult:
-          aiResult,
-
-        duplicateCheck:
-          duplicateResult,
-      };
-
-
-      const existingReports =
-        JSON.parse(
-          localStorage.getItem(
-            "garbageReports"
-          )
-        ) || [];
-
-
-      existingReports.push(
-        localReport
-      );
-
-
-      localStorage.setItem(
-        "garbageReports",
-        JSON.stringify(
-          existingReports
-        )
-      );
-
 
       console.log(
-        "Garbage Report saved successfully:"
+        "Garbage report saved successfully in MongoDB:"
       );
 
       console.log(
         data.report
       );
 
-
       alert(
         "Garbage report submitted successfully!"
       );
-
 
       setImage(null);
 
@@ -873,7 +839,6 @@ function ReportGarbage() {
       );
     }
   }
-
 
   // --------------------------------------------------
   // HANDLE SUBMIT
@@ -931,7 +896,6 @@ function ReportGarbage() {
       return;
     }
 
-
     // --------------------------------------------------
     // DUPLICATE CONFIRMATION
     // --------------------------------------------------
@@ -950,10 +914,8 @@ function ReportGarbage() {
       }
     }
 
-
     await saveReport();
   }
-
 
   // --------------------------------------------------
   // UI
@@ -981,7 +943,6 @@ function ReportGarbage() {
           </p>
 
         </div>
-
 
         <div className="report-form">
 
@@ -1029,7 +990,6 @@ function ReportGarbage() {
 
           </div>
 
-
           {/* AI ANALYSIS */}
 
           {image && (
@@ -1051,7 +1011,6 @@ function ReportGarbage() {
                   : "🤖 Analyze Image with AI"}
               </button>
 
-
               {aiResult && (
 
                 <div className="ai-result">
@@ -1059,7 +1018,6 @@ function ReportGarbage() {
                   <h3>
                     🤖 AI Analysis Result
                   </h3>
-
 
                   <p>
 
@@ -1074,7 +1032,6 @@ function ReportGarbage() {
 
                   </p>
 
-
                   <p>
 
                     <strong>
@@ -1087,7 +1044,6 @@ function ReportGarbage() {
                     }
 
                   </p>
-
 
                   <p>
 
@@ -1102,7 +1058,6 @@ function ReportGarbage() {
 
                   </p>
 
-
                   <p>
 
                     <strong>
@@ -1115,7 +1070,6 @@ function ReportGarbage() {
                     }
 
                   </p>
-
 
                   <p>
 
@@ -1137,7 +1091,6 @@ function ReportGarbage() {
             </div>
 
           )}
-
 
           {/* GARBAGE TYPE */}
 
@@ -1191,7 +1144,6 @@ function ReportGarbage() {
 
           </div>
 
-
           {/* DESCRIPTION */}
 
           <div className="form-group">
@@ -1216,7 +1168,6 @@ function ReportGarbage() {
 
           </div>
 
-
           {/* LOCATION */}
 
           <div className="form-group">
@@ -1237,7 +1188,6 @@ function ReportGarbage() {
                 : "📍 Use My Current Location"}
             </button>
 
-
             {location && (
 
               <div className="location-result">
@@ -1245,7 +1195,6 @@ function ReportGarbage() {
                 <strong>
                   📍 Location detected
                 </strong>
-
 
                 <p>
                   Latitude:{" "}
@@ -1255,7 +1204,6 @@ function ReportGarbage() {
                   }
 
                 </p>
-
 
                 <p>
                   Longitude:{" "}
@@ -1270,14 +1218,12 @@ function ReportGarbage() {
 
             )}
 
-
             <p className="location-note">
               Your location will help the
               waste collector find the garbage.
             </p>
 
           </div>
-
 
           {/* DUPLICATE CHECK */}
 
@@ -1294,7 +1240,6 @@ function ReportGarbage() {
                 complaint already exists nearby.
               </p>
 
-
               <button
                 type="button"
                 className="ai-analyze-button"
@@ -1309,7 +1254,6 @@ function ReportGarbage() {
                   ? "🤖 Checking..."
                   : "🔍 Check for Duplicate"}
               </button>
-
 
               {duplicateResult && (
 
@@ -1331,7 +1275,6 @@ function ReportGarbage() {
                     }
                   </h3>
 
-
                   <p>
 
                     <strong>
@@ -1344,7 +1287,6 @@ function ReportGarbage() {
                     }%
 
                   </p>
-
 
                   <p>
 
@@ -1366,7 +1308,6 @@ function ReportGarbage() {
             </div>
 
           )}
-
 
           {/* SUBMIT */}
 
