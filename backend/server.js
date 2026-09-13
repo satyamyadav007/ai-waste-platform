@@ -152,6 +152,79 @@ app.get("/", (req, res) => {
   );
 });
 
+// --------------------------------------------------
+// UPDATE GARBAGE REPORT
+// --------------------------------------------------
+
+app.put(
+  "/api/reports/:reportId",
+  async (req, res) => {
+    try {
+      const {
+        status,
+        proofImage,
+        verification,
+      } = req.body;
+
+      const updatedReport =
+        await GarbageReport.findOneAndUpdate(
+          {
+            reportId:
+              req.params.reportId,
+          },
+          {
+            $set: {
+              status:
+                status,
+
+              proofImage:
+                proofImage,
+
+              verification:
+                verification,
+            },
+          },
+          {
+            new: true,
+          }
+        );
+
+      if (!updatedReport) {
+        return res.status(404).json({
+          message:
+            "Garbage report not found.",
+        });
+      }
+
+      console.log(
+        "Garbage report updated in MongoDB:",
+        updatedReport.reportId
+      );
+
+      res.status(200).json({
+        message:
+          "Garbage report updated successfully.",
+
+        report:
+          updatedReport,
+      });
+
+    } catch (error) {
+      console.error(
+        "Error updating garbage report:",
+        error
+      );
+
+      res.status(500).json({
+        message:
+          "Failed to update garbage report.",
+
+        error:
+          error.message,
+      });
+    }
+  }
+);
 
 // --------------------------------------------------
 // SAVE GARBAGE REPORT TO MONGODB

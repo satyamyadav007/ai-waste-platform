@@ -971,22 +971,32 @@ body {
   background: #dff0e1;
 }
 
+/* --------------------------------------------------
+   COLLECTION PROOF
+-------------------------------------------------- */
+
 .proof-preview {
-  margin-top: 15px;
+  margin-top: 16px;
+  padding: 14px;
+  background: #f7faf7;
+  border: 1px solid #dce8dd;
+  border-radius: 10px;
 }
 
 .proof-preview strong {
   display: block;
   margin-bottom: 10px;
+  font-size: 14px;
 }
 
 .proof-preview img {
-  width: 220px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 10px;
   display: block;
-  margin-bottom: 15px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 350px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #dce8dd;
 }
 
 .collect-button {
