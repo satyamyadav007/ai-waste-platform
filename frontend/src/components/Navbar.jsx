@@ -7,12 +7,19 @@ function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // --------------------------------------------------
+  // CHECK LOGIN STATUS
+  // --------------------------------------------------
+
   useEffect(() => {
-    const savedUser = localStorage.getItem("loggedInUser");
+    const savedUser =
+      localStorage.getItem("loggedInUser");
 
     if (savedUser) {
       try {
-        setLoggedInUser(JSON.parse(savedUser));
+        setLoggedInUser(
+          JSON.parse(savedUser)
+        );
       } catch (error) {
         setLoggedInUser(null);
       }
@@ -21,42 +28,68 @@ function Navbar() {
     }
   }, [location.pathname]);
 
+  // --------------------------------------------------
+  // LOGOUT
+  // --------------------------------------------------
+
   function handleLogout() {
     localStorage.removeItem("loggedInUser");
 
     setLoggedInUser(null);
 
-    alert("You have been logged out.");
+    alert(
+      "You have been logged out."
+    );
 
     navigate("/");
   }
+
+  // --------------------------------------------------
+  // DASHBOARD LINK
+  // --------------------------------------------------
 
   function getDashboardLink() {
     if (!loggedInUser) {
       return "/login";
     }
 
-    if (loggedInUser.role === "collector") {
+    if (
+      loggedInUser.role ===
+      "collector"
+    ) {
       return "/collector-dashboard";
     }
 
-    if (loggedInUser.role === "admin") {
+    if (
+      loggedInUser.role ===
+      "admin"
+    ) {
       return "/admin-dashboard";
     }
 
     return "/dashboard";
   }
 
+  // --------------------------------------------------
+  // DASHBOARD NAME
+  // --------------------------------------------------
+
   function getDashboardName() {
     if (!loggedInUser) {
       return "Dashboard";
     }
 
-    if (loggedInUser.role === "collector") {
+    if (
+      loggedInUser.role ===
+      "collector"
+    ) {
       return "Collector Dashboard";
     }
 
-    if (loggedInUser.role === "admin") {
+    if (
+      loggedInUser.role ===
+      "admin"
+    ) {
       return "Admin Dashboard";
     }
 
@@ -66,43 +99,74 @@ function Navbar() {
   return (
     <nav className="navbar">
 
-      <h2>CleanBharat</h2>
+      {/* LOGO */}
+
+      <h2>
+        CleanBharat
+      </h2>
 
       <div className="navbar-links">
+
+        {/* HOME */}
 
         <Link to="/">
           Home
         </Link>
 
-        {(!loggedInUser ||
-          loggedInUser.role === "citizen") && (
-          <Link to="/report">
-            Report Garbage
-          </Link>
-        )}
+        {/* --------------------------------------------------
+            LOGGED IN USERS
+        -------------------------------------------------- */}
 
         {loggedInUser ? (
+
           <>
-            <Link to={getDashboardLink()}>
+
+            {/* CITIZEN ONLY */}
+
+            {loggedInUser.role ===
+              "citizen" && (
+
+              <Link to="/report">
+                Report Garbage
+              </Link>
+
+            )}
+
+            {/* DASHBOARD */}
+
+            <Link
+              to={getDashboardLink()}
+            >
               {getDashboardName()}
             </Link>
 
+            {/* HOTSPOTS */}
+
             <Link to="/hotspots">
               Hotspots
             </Link>
 
+            {/* LOGOUT */}
+
             <button
-              onClick={handleLogout}
+              onClick={
+                handleLogout
+              }
               className="logout-button"
+              type="button"
             >
               Logout
             </button>
+
           </>
+
         ) : (
+
+          /* --------------------------------------------------
+             LOGGED OUT USERS
+          -------------------------------------------------- */
+
           <>
-            <Link to="/hotspots">
-              Hotspots
-            </Link>
 
             <Link to="/login">
               Login
@@ -111,7 +175,9 @@ function Navbar() {
             <Link to="/register">
               Register
             </Link>
+
           </>
+
         )}
 
       </div>
