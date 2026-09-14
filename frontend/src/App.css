@@ -3792,3 +3792,202 @@ a {
   }
 
 }
+
+/* ================================= */
+/* SMART HOTSPOT INTELLIGENCE */
+/* ================================= */
+
+.hotspot-risk-score {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.hotspot-risk-score > div {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f7faf8;
+  border: 1px solid #dce7df;
+}
+
+.hotspot-risk-score span {
+  display: block;
+  margin-bottom: 5px;
+  color: #7a857d;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hotspot-risk-score strong {
+  display: block;
+  color: #263229;
+  font-size: 18px;
+}
+
+.hotspot-primary-context strong {
+  font-size: 13px;
+}
+
+
+/* ================================= */
+/* RISK LEVELS */
+/* ================================= */
+
+.hotspot-risk.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.hotspot-risk.high {
+  background: #ffe4e4;
+  color: #b91c1c;
+}
+
+.hotspot-risk.medium {
+  background: #fff4d6;
+  color: #a16207;
+}
+
+.hotspot-risk.low {
+  background: #e7f6ea;
+  color: #237a35;
+}
+
+
+/* ================================= */
+/* HOTSPOT CONTEXT */
+/* ================================= */
+
+.hotspot-context {
+  margin-top: 15px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8faf9;
+  border: 1px solid #dce7df;
+}
+
+.hotspot-context h4 {
+  margin: 0 0 14px;
+  color: #334137;
+  font-size: 14px;
+}
+
+.hotspot-context-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.hotspot-context-grid > div {
+  padding: 11px;
+  border-radius: 9px;
+  background: white;
+  border: 1px solid #e6ebe7;
+  text-align: center;
+}
+
+.hotspot-context-grid span {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.hotspot-context-grid p {
+  margin: 0 0 3px;
+  color: #7a857d;
+  font-size: 10px;
+}
+
+.hotspot-context-grid strong {
+  color: #263229;
+  font-size: 17px;
+}
+
+
+/* ================================= */
+/* HOTSPOT STATUS */
+/* ================================= */
+
+.hotspot-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.hotspot-status-grid > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f7faf8;
+  border: 1px solid #e0e7e2;
+}
+
+.hotspot-status-grid span {
+  font-size: 18px;
+}
+
+.hotspot-status-grid p {
+  margin: 0;
+  color: #718078;
+  font-size: 11px;
+}
+
+.hotspot-status-grid strong {
+  margin-left: auto;
+  color: #263229;
+  font-size: 17px;
+}
+
+
+/* ================================= */
+/* PREVENTION ACTION */
+/* ================================= */
+
+.hotspot-prevention {
+  margin-top: 14px;
+  padding: 15px 16px;
+  border-radius: 11px;
+  background: #f1f7f2;
+  border: 1px solid #d7e8da;
+}
+
+.hotspot-prevention strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #277238;
+  font-size: 13px;
+}
+
+.hotspot-prevention p {
+  margin: 0;
+  color: #657169;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+/* ================================= */
+/* MOBILE */
+/* ================================= */
+
+@media (max-width: 700px) {
+
+  .hotspot-risk-score {
+    flex-direction: column;
+  }
+
+  .hotspot-context-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hotspot-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
