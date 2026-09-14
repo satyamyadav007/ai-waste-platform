@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import ReportMap from "../components/ReportMap";
 
-function CollectorDashboard() {
+function CollectorDashboard({
+  view = "dashboard",
+}) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -14,7 +16,7 @@ function CollectorDashboard() {
     useState({});
 
   // --------------------------------------------------
-  // FETCH REPORTS FROM MONGODB
+  // FETCH REPORTS
   // --------------------------------------------------
 
   useEffect(() => {
@@ -47,11 +49,6 @@ function CollectorDashboard() {
 
         setReports(
           normalizedReports
-        );
-
-        console.log(
-          "Collector reports loaded from MongoDB:",
-          normalizedReports.length
         );
 
       } catch (error) {
@@ -142,10 +139,6 @@ function CollectorDashboard() {
           [reportId]:
             null,
         })
-      );
-
-      console.log(
-        "Collection proof prepared as persistent Data URL."
       );
 
     } catch (error) {
@@ -263,10 +256,6 @@ function CollectorDashboard() {
           }
         );
 
-      console.log(
-        "Sending before and after images for AI verification."
-      );
-
       const response =
         await fetch(
           "https://ai-waste-platform.onrender.com/api/verify-collection",
@@ -297,11 +286,6 @@ function CollectorDashboard() {
 
       const data =
         await response.json();
-
-      console.log(
-        "Verification result:",
-        data
-      );
 
       if (!response.ok) {
         alert(
@@ -383,10 +367,6 @@ function CollectorDashboard() {
     }
 
     try {
-      console.log(
-        "Updating garbage report in MongoDB..."
-      );
-
       const response =
         await fetch(
           `https://ai-waste-platform.onrender.com/api/reports/${reportId}`,
@@ -415,11 +395,6 @@ function CollectorDashboard() {
       const data =
         await response.json();
 
-      console.log(
-        "MongoDB update response:",
-        data
-      );
-
       if (!response.ok) {
         alert(
           data.message ||
@@ -429,35 +404,22 @@ function CollectorDashboard() {
         return;
       }
 
-      const updatedReports =
-        reports.map(
-          (report) => {
-
-            if (
-              report.id ===
-              reportId
-            ) {
-
-              return {
-                ...report,
-
-                status:
-                  "Collected",
-
-                proofImage:
-                  proofImage,
-
-                verification:
-                  verification,
-              };
-            }
-
-            return report;
-          }
-        );
-
       setReports(
-        updatedReports
+        (previousReports) =>
+          previousReports.map(
+            (report) =>
+              report.id === reportId
+                ? {
+                    ...report,
+                    status:
+                      "Collected",
+                    proofImage:
+                      proofImage,
+                    verification:
+                      verification,
+                  }
+                : report
+          )
       );
 
       alert(
@@ -465,7 +427,6 @@ function CollectorDashboard() {
       );
 
     } catch (error) {
-
       console.error(
         "Collection update error:",
         error
@@ -478,7 +439,7 @@ function CollectorDashboard() {
   }
 
   // --------------------------------------------------
-  // REPLACE EXISTING COLLECTION PROOF
+  // REPLACE COLLECTION PROOF
   // --------------------------------------------------
 
   async function handleReplaceProof(
@@ -505,10 +466,6 @@ function CollectorDashboard() {
 
         return;
       }
-
-      console.log(
-        "Replacing collection proof in MongoDB..."
-      );
 
       const response =
         await fetch(
@@ -538,11 +495,6 @@ function CollectorDashboard() {
       const data =
         await response.json();
 
-      console.log(
-        "Proof replacement response:",
-        data
-      );
-
       if (!response.ok) {
         alert(
           data.message ||
@@ -552,29 +504,18 @@ function CollectorDashboard() {
         return;
       }
 
-      const updatedReports =
-        reports.map(
-          (item) => {
-
-            if (
-              item.id ===
-              report.id
-            ) {
-
-              return {
-                ...item,
-
-                proofImage:
-                  dataUrl,
-              };
-            }
-
-            return item;
-          }
-        );
-
       setReports(
-        updatedReports
+        (previousReports) =>
+          previousReports.map(
+            (item) =>
+              item.id === report.id
+                ? {
+                    ...item,
+                    proofImage:
+                      dataUrl,
+                  }
+                : item
+          )
       );
 
       alert(
@@ -582,7 +523,6 @@ function CollectorDashboard() {
       );
 
     } catch (error) {
-
       console.error(
         "Proof replacement error:",
         error
@@ -679,92 +619,108 @@ function CollectorDashboard() {
   }
 
   // --------------------------------------------------
-  // PRIORITY TEXT
+  // REPORT GROUPS
   // --------------------------------------------------
 
-  function getPriorityText(
-    priority
-  ) {
-    if (
-      priority === "High"
-    ) {
-      return "High Priority";
-    }
+  const pendingReports =
+    reports
+      .filter(
+        (report) =>
+          report.status === "Pending"
+      )
+      .sort(
+        (a, b) => {
+          const priorityDifference =
+            getPriorityValue(
+              b.priority
+            ) -
+            getPriorityValue(
+              a.priority
+            );
 
-    if (
-      priority === "Medium"
-    ) {
-      return "Medium Priority";
-    }
+          if (
+            priorityDifference !== 0
+          ) {
+            return priorityDifference;
+          }
 
-    if (
-      priority === "Low"
-    ) {
-      return "Low Priority";
-    }
-
-    return "Priority Not Available";
-  }
-
-  // --------------------------------------------------
-  // SORT REPORTS
-  // --------------------------------------------------
-
-  const sortedReports =
-    [...reports].sort(
-      (a, b) => {
-
-        const priorityDifference =
-          getPriorityValue(
-            b.priority
-          ) -
-          getPriorityValue(
-            a.priority
+          return (
+            new Date(
+              a.createdAt
+            ) -
+            new Date(
+              b.createdAt
+            )
           );
-
-        if (
-          priorityDifference !== 0
-        ) {
-          return priorityDifference;
         }
+      );
 
-        return (
-          new Date(
-            a.createdAt
-          ) -
+  const collectedReports =
+    reports
+      .filter(
+        (report) =>
+          report.status ===
+            "Collected" ||
+          report.status ===
+            "Resolved"
+      )
+      .sort(
+        (a, b) =>
           new Date(
             b.createdAt
+          ) -
+          new Date(
+            a.createdAt
           )
-        );
+      );
 
-      }
-    );
+  const highPriorityCount =
+    pendingReports.filter(
+      (report) =>
+        report.priority ===
+        "High"
+    ).length;
+
+  const mediumPriorityCount =
+    pendingReports.filter(
+      (report) =>
+        report.priority ===
+        "Medium"
+    ).length;
+
+  const lowPriorityCount =
+    pendingReports.filter(
+      (report) =>
+        report.priority ===
+        "Low"
+    ).length;
 
   // --------------------------------------------------
-  // LOADING STATE
+  // LOADING
   // --------------------------------------------------
 
   if (loading) {
-
     return (
       <div className="dashboard-page">
 
         <div className="dashboard-header">
 
           <div>
-
             <p className="dashboard-tag">
               COLLECTOR PORTAL
             </p>
 
             <h1>
-              Collector Dashboard
+              {view === "pending"
+                ? "Pending Reports"
+                : view === "collected"
+                ? "Collection History"
+                : "Collector Dashboard"}
             </h1>
 
             <p>
               Loading reports from MongoDB...
             </p>
-
           </div>
 
         </div>
@@ -791,18 +747,16 @@ function CollectorDashboard() {
   }
 
   // --------------------------------------------------
-  // ERROR STATE
+  // ERROR
   // --------------------------------------------------
 
   if (error) {
-
     return (
       <div className="dashboard-page">
 
         <div className="dashboard-header">
 
           <div>
-
             <p className="dashboard-tag">
               COLLECTOR PORTAL
             </p>
@@ -812,11 +766,9 @@ function CollectorDashboard() {
             </h1>
 
             <p>
-              View garbage reports submitted by
-              citizens and manage collection
-              activities.
+              View and manage garbage
+              collection reports.
             </p>
-
           </div>
 
         </div>
@@ -835,10 +787,256 @@ function CollectorDashboard() {
             {error}
           </p>
 
-          <p>
-            Make sure the backend server
-            is running.
-          </p>
+        </div>
+
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // DASHBOARD OVERVIEW
+  // --------------------------------------------------
+
+  if (
+    view === "dashboard"
+  ) {
+    return (
+      <div className="dashboard-page">
+
+        <div className="dashboard-header">
+
+          <div>
+
+            <p className="dashboard-tag">
+              COLLECTOR PORTAL
+            </p>
+
+            <h1>
+              Collector Dashboard
+            </h1>
+
+            <p>
+              Manage waste collection and
+              prioritize reports that need action.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* SUMMARY */}
+
+        <div className="collector-overview-stats">
+
+          <div className="stat-card">
+
+            <span className="stat-icon">
+              🚛
+            </span>
+
+            <div>
+              <p>
+                Pending Reports
+              </p>
+
+              <h2>
+                {pendingReports.length}
+              </h2>
+            </div>
+
+          </div>
+
+
+          <div className="stat-card">
+
+            <span className="stat-icon">
+              🔴
+            </span>
+
+            <div>
+              <p>
+                High Priority
+              </p>
+
+              <h2>
+                {highPriorityCount}
+              </h2>
+            </div>
+
+          </div>
+
+
+          <div className="stat-card">
+
+            <span className="stat-icon">
+              ✅
+            </span>
+
+            <div>
+              <p>
+                Collected
+              </p>
+
+              <h2>
+                {collectedReports.length}
+              </h2>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        {/* PRIORITY SUMMARY */}
+
+        <div className="collector-priority-summary">
+
+          <div>
+
+            <span className="priority-summary-dot high">
+              🔴
+            </span>
+
+            <div>
+              <strong>
+                {highPriorityCount}
+              </strong>
+
+              <small>
+                High Priority
+              </small>
+            </div>
+
+          </div>
+
+
+          <div>
+
+            <span className="priority-summary-dot medium">
+              🟠
+            </span>
+
+            <div>
+              <strong>
+                {mediumPriorityCount}
+              </strong>
+
+              <small>
+                Medium Priority
+              </small>
+            </div>
+
+          </div>
+
+
+          <div>
+
+            <span className="priority-summary-dot low">
+              🟢
+            </span>
+
+            <div>
+              <strong>
+                {lowPriorityCount}
+              </strong>
+
+              <small>
+                Low Priority
+              </small>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        {/* MAP */}
+
+        <div className="reports-section">
+
+          <div className="section-title">
+
+            <div>
+
+              <p className="dashboard-tag">
+                REPORT LOCATIONS
+              </p>
+
+              <h2>
+                Garbage Locations Map
+              </h2>
+
+              <p>
+                View reported garbage locations
+                and their priority.
+              </p>
+
+            </div>
+
+          </div>
+
+          <ReportMap />
+
+        </div>
+
+
+        {/* QUICK ACTION */}
+
+        <div className="collector-quick-actions">
+
+          <a
+            href="/collector-pending"
+            className="collector-quick-action pending"
+          >
+            <span>
+              🚛
+            </span>
+
+            <div>
+
+              <strong>
+                Pending Reports
+              </strong>
+
+              <small>
+                View and collect pending garbage
+              </small>
+
+            </div>
+
+            <b>
+              →
+            </b>
+
+          </a>
+
+
+          <a
+            href="/collector-collected"
+            className="collector-quick-action collected"
+          >
+            <span>
+              ✅
+            </span>
+
+            <div>
+
+              <strong>
+                Collection History
+              </strong>
+
+              <small>
+                View previously collected reports
+              </small>
+
+            </div>
+
+            <b>
+              →
+            </b>
+
+          </a>
 
         </div>
 
@@ -846,108 +1044,131 @@ function CollectorDashboard() {
     );
   }
 
+  // --------------------------------------------------
+  // REPORT PAGE
+  // --------------------------------------------------
+
+  const reportsToDisplay =
+    view === "pending"
+      ? pendingReports
+      : collectedReports;
+
+  const isPendingView =
+    view === "pending";
+
   return (
     <div className="dashboard-page">
-
-      {/* --------------------------------------------------
-          HEADER
-      -------------------------------------------------- */}
 
       <div className="dashboard-header">
 
         <div>
 
           <p className="dashboard-tag">
-            COLLECTOR PORTAL
+            {isPendingView
+              ? "ACTIVE COLLECTION"
+              : "COLLECTION HISTORY"}
           </p>
 
           <h1>
-            Collector Dashboard
+            {isPendingView
+              ? "Pending Reports"
+              : "Collection History"}
           </h1>
 
           <p>
-            View garbage reports submitted by
-            citizens and manage collection
-            activities.
+            {isPendingView
+              ? "Reports waiting for collection, arranged by context-aware priority."
+              : "Previously collected reports with collection proof and AI verification."}
           </p>
 
         </div>
 
       </div>
 
-      {/* --------------------------------------------------
-          MAP
-      -------------------------------------------------- */}
 
-      <div className="reports-section">
+      {/* PAGE SUMMARY */}
 
-        <div className="section-title">
+      <div className="collector-page-summary">
+
+        <div>
+          <span>
+            {isPendingView
+              ? "🚛"
+              : "✅"}
+          </span>
 
           <div>
+            <strong>
+              {reportsToDisplay.length}
+            </strong>
 
-            <p className="dashboard-tag">
-              REPORT LOCATIONS
-            </p>
-
-            <h2>
-              Garbage Locations Map
-            </h2>
-
-            <p>
-              View reported garbage locations
-              and their AI-based priority.
-            </p>
-
+            <small>
+              {isPendingView
+                ? "Pending Reports"
+                : "Collected Reports"}
+            </small>
           </div>
-
         </div>
 
-        <ReportMap />
+        {isPendingView && (
+
+          <>
+
+            <div>
+              <span>
+                🔴
+              </span>
+
+              <div>
+                <strong>
+                  {highPriorityCount}
+                </strong>
+
+                <small>
+                  High Priority
+                </small>
+              </div>
+            </div>
+
+
+            <div>
+              <span>
+                🟠
+              </span>
+
+              <div>
+                <strong>
+                  {mediumPriorityCount}
+                </strong>
+
+                <small>
+                  Medium Priority
+                </small>
+              </div>
+            </div>
+
+          </>
+
+        )}
 
       </div>
 
-      {/* --------------------------------------------------
-          REPORTS
-      -------------------------------------------------- */}
+
+      {/* REPORTS */}
 
       <div className="reports-section">
 
-        <div className="section-title">
-
-          <div>
-
-            <p className="dashboard-tag">
-              GARBAGE REPORTS
-            </p>
-
-            <h2>
-              Reports to Collect
-            </h2>
-
-            <p>
-              Reports are arranged by
-              context-aware priority.
-            </p>
-
-          </div>
-
-        </div>
-
-        {sortedReports.length > 0 ? (
+        {reportsToDisplay.length > 0 ? (
 
           <div className="reports-list">
 
-            {sortedReports.map(
+            {reportsToDisplay.map(
               (report) => (
 
                 <div
                   className="report-card"
-                  key={
-                    report.id
-                  }
+                  key={report.id}
                 >
-
-                  {/* REPORT IMAGE */}
 
                   <div className="report-card-image">
 
@@ -960,6 +1181,7 @@ function CollectorDashboard() {
                     />
 
                   </div>
+
 
                   <div className="report-card-content">
 
@@ -990,9 +1212,7 @@ function CollectorDashboard() {
                     </div>
 
 
-                    {/* --------------------------------------------------
-                        CONTEXT-AWARE PRIORITY
-                    -------------------------------------------------- */}
+                    {/* PRIORITY */}
 
                     <div className="collector-priority-box">
 
@@ -1010,9 +1230,8 @@ function CollectorDashboard() {
                           {getPriorityIcon(
                             report.priority
                           )}{" "}
-                          {getPriorityText(
-                            report.priority
-                          )}
+                          {report.priority ||
+                            "Not Calculated"}
                         </span>
 
                       </div>
@@ -1020,7 +1239,9 @@ function CollectorDashboard() {
                       {report.priorityReason && (
 
                         <p className="priority-reason">
-                          {report.priorityReason}
+                          {
+                            report.priorityReason
+                          }
                         </p>
 
                       )}
@@ -1028,9 +1249,7 @@ function CollectorDashboard() {
                     </div>
 
 
-                    {/* --------------------------------------------------
-                        SENSITIVE LOCATION
-                    -------------------------------------------------- */}
+                    {/* SENSITIVE LOCATION */}
 
                     {report.sensitiveLocationType &&
                       report.sensitiveLocationType !==
@@ -1117,9 +1336,7 @@ function CollectorDashboard() {
                               report
                                 .aiResult
                                 .severity
-                                ? `${report.aiResult.severity} Severity`
-                                : "Severity unavailable"
-                            }
+                            } Severity
                           </span>
 
                         </div>
@@ -1160,7 +1377,6 @@ function CollectorDashboard() {
                               .aiResult
                               .confidence
                           }%
-
                         </p>
 
                         <p>
@@ -1173,20 +1389,6 @@ function CollectorDashboard() {
                               .aiResult
                               .severity
                           }
-
-                        </p>
-
-                        <p>
-                          <strong>
-                            AI Description:
-                          </strong>{" "}
-
-                          {
-                            report
-                              .aiResult
-                              .description
-                          }
-
                         </p>
 
                       </div>
@@ -1232,16 +1434,11 @@ function CollectorDashboard() {
                     </p>
 
 
-                    {/* --------------------------------------------------
-                        PENDING REPORT ACTIONS
-                    -------------------------------------------------- */}
+                    {/* PENDING ACTIONS */}
 
-                    {report.status ===
-                      "Pending" && (
+                    {isPendingView && (
 
                       <div className="collector-action">
-
-                        {/* PROOF UPLOAD */}
 
                         <label className="proof-upload">
 
@@ -1261,8 +1458,6 @@ function CollectorDashboard() {
 
                         </label>
 
-
-                        {/* PROOF PREVIEW */}
 
                         {proofImages[
                           report.id
@@ -1284,8 +1479,6 @@ function CollectorDashboard() {
                         )}
 
 
-                        {/* AI VERIFICATION */}
-
                         <button
                           type="button"
                           className="ai-analyze-button"
@@ -1304,15 +1497,11 @@ function CollectorDashboard() {
                           {verificationLoading[
                             report.id
                           ]
-
                             ? "🤖 Verifying..."
-
                             : "🤖 Verify Collection with AI"}
 
                         </button>
 
-
-                        {/* VERIFICATION RESULT */}
 
                         {verificationResults[
                           report.id
@@ -1325,7 +1514,6 @@ function CollectorDashboard() {
                             </h3>
 
                             <p>
-
                               <strong>
                                 Garbage Removed:
                               </strong>{" "}
@@ -1337,11 +1525,9 @@ function CollectorDashboard() {
                                   ? "Yes ✅"
                                   : "No ❌"
                               }
-
                             </p>
 
                             <p>
-
                               <strong>
                                 Confidence:
                               </strong>{" "}
@@ -1350,12 +1536,10 @@ function CollectorDashboard() {
                                 verificationResults[
                                   report.id
                                 ].confidence
-                              }%{" "}
-
+                              }%
                             </p>
 
                             <p>
-
                               <strong>
                                 Explanation:
                               </strong>{" "}
@@ -1365,15 +1549,12 @@ function CollectorDashboard() {
                                   report.id
                                 ].explanation
                               }
-
                             </p>
 
                           </div>
 
                         )}
 
-
-                        {/* MARK COLLECTED */}
 
                         <button
                           type="button"
@@ -1392,119 +1573,111 @@ function CollectorDashboard() {
                     )}
 
 
-                    {/* --------------------------------------------------
-                        COLLECTED REPORT PROOF
-                    -------------------------------------------------- */}
+                    {/* COLLECTED PROOF */}
 
-                    {report.status ===
-                      "Collected" && (
+                    {!isPendingView && (
 
-                      <div className="proof-preview">
+                      <>
 
-                        <strong>
-                          Collection Proof
-                        </strong>
+                        <div className="proof-preview">
 
-                        {report.proofImage ? (
+                          <strong>
+                            ✅ Collection Proof
+                          </strong>
 
-                          <img
-                            src={
-                              report.proofImage
-                            }
-                            alt="Collection proof"
-                          />
+                          {report.proofImage ? (
 
-                        ) : (
+                            <img
+                              src={
+                                report.proofImage
+                              }
+                              alt="Collection proof"
+                            />
 
-                          <p>
-                            No collection proof
-                            is currently stored.
-                          </p>
+                          ) : (
+
+                            <p>
+                              No collection proof
+                              is currently stored.
+                            </p>
+
+                          )}
+
+                          <label className="proof-upload">
+
+                            📷 Replace Collection Proof
+
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(event) =>
+                                handleReplaceProof(
+                                  event,
+                                  report
+                                )
+                              }
+                              hidden
+                            />
+
+                          </label>
+
+                        </div>
+
+
+                        {report.verification && (
+
+                          <div className="verification-box">
+
+                            <h3>
+                              🤖 AI Verification
+                            </h3>
+
+                            <p>
+
+                              <strong>
+                                Garbage Removed:
+                              </strong>{" "}
+
+                              {
+                                report.verification
+                                  .garbageRemoved
+                                  ? "Yes ✅"
+                                  : "No ❌"
+                              }
+
+                            </p>
+
+                            <p>
+
+                              <strong>
+                                Confidence:
+                              </strong>{" "}
+
+                              {
+                                report.verification
+                                  .confidence
+                              }%
+
+                            </p>
+
+                            <p>
+
+                              <strong>
+                                Explanation:
+                              </strong>{" "}
+
+                              {
+                                report.verification
+                                  .explanation
+                              }
+
+                            </p>
+
+                          </div>
 
                         )}
 
-
-                        {/* REPLACE PROOF */}
-
-                        <label className="proof-upload">
-
-                          📷 Replace Collection Proof
-
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(event) =>
-                              handleReplaceProof(
-                                event,
-                                report
-                              )
-                            }
-                            hidden
-                          />
-
-                        </label>
-
-                      </div>
-
-                    )}
-
-
-                    {/* --------------------------------------------------
-                        COLLECTED REPORT VERIFICATION
-                    -------------------------------------------------- */}
-
-                    {report.status ===
-                      "Collected" &&
-                      report.verification && (
-
-                        <div className="verification-box">
-
-                          <h3>
-                            🤖 AI Verification
-                          </h3>
-
-                          <p>
-
-                            <strong>
-                              Garbage Removed:
-                            </strong>{" "}
-
-                            {
-                              report.verification
-                                .garbageRemoved
-                                ? "Yes ✅"
-                                : "No ❌"
-                            }
-
-                          </p>
-
-                          <p>
-
-                            <strong>
-                              Confidence:
-                            </strong>{" "}
-
-                            {
-                              report.verification
-                                .confidence
-                            }%
-
-                          </p>
-
-                          <p>
-
-                            <strong>
-                              Explanation:
-                            </strong>{" "}
-
-                            {
-                              report.verification
-                                .explanation
-                            }
-
-                          </p>
-
-                        </div>
+                      </>
 
                     )}
 
@@ -1522,16 +1695,27 @@ function CollectorDashboard() {
           <div className="empty-reports">
 
             <div className="empty-icon">
-              🗑️
+
+              {isPendingView
+                ? "🎉"
+                : "📦"}
+
             </div>
 
             <h3>
-              No garbage reports
+
+              {isPendingView
+                ? "No Pending Reports"
+                : "No Collection History"}
+
             </h3>
 
             <p>
-              There are currently no garbage
-              reports submitted by citizens.
+
+              {isPendingView
+                ? "Great! There are currently no garbage reports waiting for collection."
+                : "No reports have been marked as collected yet."}
+
             </p>
 
           </div>

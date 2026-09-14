@@ -8,12 +8,16 @@ import {
 import "./App.css";
 
 import Navbar from "./components/Navbar";
+import CollectorLayout from "./components/CollectorLayout";
+
 import Home from "./pages/Home";
 import ReportGarbage from "./pages/ReportGarbage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import CollectorDashboard from "./pages/CollectorDashboard";
+import CollectorPending from "./pages/CollectorPending";
+import CollectorCollected from "./pages/CollectorCollected";
 import Hotspots from "./pages/Hotspots";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -23,25 +27,30 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 function getLoggedInUser() {
   const loggedInUser =
-    localStorage.getItem("loggedInUser");
+    localStorage.getItem(
+      "loggedInUser"
+    );
 
   if (!loggedInUser) {
     return null;
   }
 
   try {
-    return JSON.parse(loggedInUser);
+    return JSON.parse(
+      loggedInUser
+    );
   } catch (error) {
     return null;
   }
 }
 
 // --------------------------------------------------
-// CITIZEN PROTECTED ROUTE
+// PROTECTED CITIZEN DASHBOARD
 // --------------------------------------------------
 
 function ProtectedCitizenDashboard() {
-  const user = getLoggedInUser();
+  const user =
+    getLoggedInUser();
 
   if (!user) {
     return (
@@ -52,7 +61,10 @@ function ProtectedCitizenDashboard() {
     );
   }
 
-  if (user.role !== "citizen") {
+  if (
+    user.role !==
+    "citizen"
+  ) {
     return (
       <Navigate
         to="/"
@@ -61,15 +73,18 @@ function ProtectedCitizenDashboard() {
     );
   }
 
-  return <CitizenDashboard />;
+  return (
+    <CitizenDashboard />
+  );
 }
 
 // --------------------------------------------------
-// CITIZEN PROTECTED REPORT ROUTE
+// PROTECTED REPORT
 // --------------------------------------------------
 
 function ProtectedReportGarbage() {
-  const user = getLoggedInUser();
+  const user =
+    getLoggedInUser();
 
   if (!user) {
     return (
@@ -80,7 +95,10 @@ function ProtectedReportGarbage() {
     );
   }
 
-  if (user.role !== "citizen") {
+  if (
+    user.role !==
+    "citizen"
+  ) {
     return (
       <Navigate
         to="/"
@@ -89,15 +107,18 @@ function ProtectedReportGarbage() {
     );
   }
 
-  return <ReportGarbage />;
+  return (
+    <ReportGarbage />
+  );
 }
 
 // --------------------------------------------------
-// PROTECTED HOTSPOTS ROUTE
+// PROTECTED HOTSPOTS
 // --------------------------------------------------
 
 function ProtectedHotspots() {
-  const user = getLoggedInUser();
+  const user =
+    getLoggedInUser();
 
   if (!user) {
     return (
@@ -121,43 +142,18 @@ function ProtectedHotspots() {
     );
   }
 
-  return <Hotspots />;
+  return (
+    <Hotspots />
+  );
 }
 
 // --------------------------------------------------
-// COLLECTOR PROTECTED ROUTE
-// --------------------------------------------------
-
-function ProtectedCollectorDashboard() {
-  const user = getLoggedInUser();
-
-  if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-
-  if (user.role !== "collector") {
-    return (
-      <Navigate
-        to="/"
-        replace
-      />
-    );
-  }
-
-  return <CollectorDashboard />;
-}
-
-// --------------------------------------------------
-// ADMIN PROTECTED ROUTE
+// PROTECTED ADMIN DASHBOARD
 // --------------------------------------------------
 
 function ProtectedAdminDashboard() {
-  const user = getLoggedInUser();
+  const user =
+    getLoggedInUser();
 
   if (!user) {
     return (
@@ -168,7 +164,10 @@ function ProtectedAdminDashboard() {
     );
   }
 
-  if (user.role !== "admin") {
+  if (
+    user.role !==
+    "admin"
+  ) {
     return (
       <Navigate
         to="/"
@@ -177,11 +176,47 @@ function ProtectedAdminDashboard() {
     );
   }
 
-  return <AdminDashboard />;
+  return (
+    <AdminDashboard />
+  );
 }
 
 // --------------------------------------------------
-// MAIN APP
+// PROTECTED COLLECTOR LAYOUT
+// --------------------------------------------------
+
+function ProtectedCollectorLayout() {
+  const user =
+    getLoggedInUser();
+
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  if (
+    user.role !==
+    "collector"
+  ) {
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    );
+  }
+
+  return (
+    <CollectorLayout />
+  );
+}
+
+// --------------------------------------------------
+// APP
 // --------------------------------------------------
 
 function App() {
@@ -192,14 +227,31 @@ function App() {
 
       <Routes>
 
-        {/* HOME */}
+        {/* PUBLIC */}
 
         <Route
           path="/"
-          element={<Home />}
+          element={
+            <Home />
+          }
         />
 
-        {/* REPORT GARBAGE */}
+        <Route
+          path="/login"
+          element={
+            <Login />
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            <Register />
+          }
+        />
+
+
+        {/* CITIZEN */}
 
         <Route
           path="/report"
@@ -208,22 +260,6 @@ function App() {
           }
         />
 
-        {/* LOGIN */}
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        {/* REGISTER */}
-
-        <Route
-          path="/register"
-          element={<Register />}
-        />
-
-        {/* CITIZEN DASHBOARD */}
-
         <Route
           path="/dashboard"
           element={
@@ -231,16 +267,40 @@ function App() {
           }
         />
 
-        {/* COLLECTOR DASHBOARD */}
+
+        {/* COLLECTOR */}
 
         <Route
-          path="/collector-dashboard"
           element={
-            <ProtectedCollectorDashboard />
+            <ProtectedCollectorLayout />
           }
-        />
+        >
 
-        {/* HOTSPOTS */}
+          <Route
+            path="/collector-dashboard"
+            element={
+              <CollectorDashboard />
+            }
+          />
+
+          <Route
+            path="/collector-pending"
+            element={
+              <CollectorPending />
+            }
+          />
+
+          <Route
+            path="/collector-collected"
+            element={
+              <CollectorCollected />
+            }
+          />
+
+        </Route>
+
+
+        {/* SHARED HOTSPOTS */}
 
         <Route
           path="/hotspots"
@@ -249,7 +309,8 @@ function App() {
           }
         />
 
-        {/* ADMIN DASHBOARD */}
+
+        {/* ADMIN */}
 
         <Route
           path="/admin-dashboard"
