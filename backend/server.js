@@ -275,6 +275,117 @@ app.put(
 );
 
 // --------------------------------------------------
+// CONTEXT-AWARE PRIORITY CALCULATION
+// --------------------------------------------------
+
+function calculatePriority(
+  severity,
+  sensitiveLocationType
+) {
+  const normalizedSeverity =
+    String(severity || "")
+      .trim()
+      .toLowerCase();
+
+  const location =
+    String(
+      sensitiveLocationType || "None"
+    ).trim();
+
+  // High-risk locations
+  const highRiskLocations = [
+    "Hospital / Clinic",
+    "River / Lake / Pond",
+    "Drain / Sewer / Water Channel",
+  ];
+
+  // Important public locations
+  const mediumRiskLocations = [
+    "School",
+    "College / University",
+    "Market / Shopping Area",
+    "Park / Playground",
+    "Religious / Public Place",
+    "Transport Hub",
+    "Industrial Area",
+  ];
+
+  // --------------------------------------------------
+  // HIGH AI SEVERITY
+  // --------------------------------------------------
+
+  if (normalizedSeverity === "high") {
+    return {
+      priority: "High",
+
+      priorityReason:
+        location === "None"
+          ? "High waste severity detected by AI."
+          : `High waste severity combined with reported location context: ${location}.`,
+    };
+  }
+
+  // --------------------------------------------------
+  // HIGH-RISK LOCATION
+  // --------------------------------------------------
+
+  if (
+    highRiskLocations.includes(location)
+  ) {
+    return {
+      priority: "High",
+
+      priorityReason:
+        `Waste is reported near a high-risk location: ${location}.`,
+    };
+  }
+
+  // --------------------------------------------------
+  // IMPORTANT PUBLIC LOCATION
+  // --------------------------------------------------
+
+  if (
+    mediumRiskLocations.includes(location)
+  ) {
+    return {
+      priority:
+        normalizedSeverity === "low"
+          ? "Medium"
+          : "High",
+
+      priorityReason:
+        `Waste is reported near an important public location: ${location}.`,
+    };
+  }
+
+  // --------------------------------------------------
+  // MEDIUM AI SEVERITY
+  // --------------------------------------------------
+
+  if (
+    normalizedSeverity === "medium"
+  ) {
+    return {
+      priority: "Medium",
+
+      priorityReason:
+        "Medium waste severity detected by AI.",
+    };
+  }
+
+  // --------------------------------------------------
+  // LOW / UNKNOWN SEVERITY
+  // --------------------------------------------------
+
+  return {
+    priority: "Low",
+
+    priorityReason:
+      "Low or standard waste risk based on the available information.",
+  };
+}
+
+// --------------------------------------------------
 // SAVE GARBAGE REPORT TO MONGODB
 // --------------------------------------------------
 
@@ -282,10 +393,40 @@ app.post(
   "/api/reports",
   async (req, res) => {
     try {
-      const report =
-        new GarbageReport(
-          req.body
+      const {
+        aiResult,
+        sensitiveLocationType,
+      } = req.body;
+
+      // --------------------------------------------------
+      // CALCULATE CONTEXT-AWARE PRIORITY
+      // --------------------------------------------------
+
+      const priorityData =
+        calculatePriority(
+          aiResult?.severity,
+          sensitiveLocationType
         );
+
+      console.log(
+        "Calculated priority:",
+        priorityData
+      );
+
+      // --------------------------------------------------
+      // CREATE REPORT
+      // --------------------------------------------------
+
+      const report =
+        new GarbageReport({
+          ...req.body,
+
+          priority:
+            priorityData.priority,
+
+          priorityReason:
+            priorityData.priorityReason,
+        });
 
       const savedReport =
         await report.save();
@@ -296,6 +437,16 @@ app.post(
 
       console.log(
         savedReport.reportId
+      );
+
+      console.log(
+        "Priority:",
+        savedReport.priority
+      );
+
+      console.log(
+        "Priority reason:",
+        savedReport.priorityReason
       );
 
       res.status(201).json({
@@ -666,7 +817,7 @@ Return JSON with:
       if (error.status === 429) {
         return res.status(429).json({
           message:
-            "Gemini AI daily quota has been exceeded. Please try again later.",
+            "Gemini API daily quota has been exceeded. Please try again later.",
         });
       }
 
@@ -890,10 +1041,6 @@ Return JSON according to the provided schema.
     }
   }
 );
-
-// --------------------------------------------------
-// START SERVER
-// --------------------------------------------------
 
 // --------------------------------------------------
 // START SERVER

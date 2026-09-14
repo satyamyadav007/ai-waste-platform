@@ -43,6 +43,60 @@ const garbageReportSchema = new mongoose.Schema(
       required: true,
     },
 
+    /* ============================= */
+    /* CONTEXT-AWARE LOCATION */
+    /* ============================= */
+
+    sensitiveLocationType: {
+      type: String,
+      enum: [
+        "None",
+        "Hospital / Clinic",
+        "School",
+        "College / University",
+        "River / Lake / Pond",
+        "Drain / Sewer / Water Channel",
+        "Market / Shopping Area",
+        "Residential Area",
+        "Park / Playground",
+        "Religious / Public Place",
+        "Transport Hub",
+        "Industrial Area",
+        "Other",
+      ],
+      default: "None",
+    },
+
+    sensitiveLocationName: {
+      type: String,
+      default: "",
+    },
+
+    sensitiveLocationDistance: {
+      type: Number,
+      default: null,
+    },
+
+    /* ============================= */
+    /* CONTEXT-AWARE PRIORITY */
+    /* ============================= */
+
+    priority: {
+      type: String,
+      enum: [
+        "Low",
+        "Medium",
+        "High",
+      ],
+      default: "Low",
+    },
+
+    priorityReason: {
+      type: String,
+      default:
+        "Standard priority based on waste severity and location context.",
+    },
+
     status: {
       type: String,
       default: "Pending",

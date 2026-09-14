@@ -75,7 +75,6 @@ function CitizenDashboard() {
         );
 
       } catch (error) {
-
         console.error(
           "Citizen reports fetch error:",
           error
@@ -115,7 +114,6 @@ function CitizenDashboard() {
       feedback[reportId] || "";
 
     try {
-
       console.log(
         "Saving rating to MongoDB..."
       );
@@ -160,12 +158,10 @@ function CitizenDashboard() {
       const updatedReports =
         reports.map(
           (report) => {
-
             if (
               report.id ===
               reportId
             ) {
-
               return {
                 ...report,
 
@@ -190,7 +186,6 @@ function CitizenDashboard() {
       );
 
     } catch (error) {
-
       console.error(
         "Rating update error:",
         error
@@ -233,6 +228,62 @@ function CitizenDashboard() {
       types[type] ||
       type
     );
+  }
+
+  // --------------------------------------------------
+  // PRIORITY CLASS
+  // --------------------------------------------------
+
+  function getPriorityClass(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "priority-high";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "priority-medium";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "priority-low";
+    }
+
+    return "priority-unknown";
+  }
+
+  // --------------------------------------------------
+  // PRIORITY ICON
+  // --------------------------------------------------
+
+  function getPriorityIcon(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "🔴";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "🟠";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "🟢";
+    }
+
+    return "⚪";
   }
 
   // --------------------------------------------------
@@ -550,6 +601,114 @@ function CitizenDashboard() {
 
                     </div>
 
+
+                    {/* --------------------------------------------------
+                        PRIORITY
+                    -------------------------------------------------- */}
+
+                    <div className="report-priority-box">
+
+                      <div className="report-priority-header">
+
+                        <strong>
+                          Context-Aware Priority
+                        </strong>
+
+                        {report.priority ? (
+
+                          <span
+                            className={`priority-badge ${getPriorityClass(
+                              report.priority
+                            )}`}
+                          >
+                            {getPriorityIcon(
+                              report.priority
+                            )}{" "}
+                            {report.priority}
+                          </span>
+
+                        ) : (
+
+                          <span className="priority-badge priority-unknown">
+                            ⚪ Not Calculated
+                          </span>
+
+                        )}
+
+                      </div>
+
+                      {report.priorityReason && (
+
+                        <p className="priority-reason">
+                          {report.priorityReason}
+                        </p>
+
+                      )}
+
+                    </div>
+
+
+                    {/* --------------------------------------------------
+                        SENSITIVE LOCATION
+                    -------------------------------------------------- */}
+
+                    {report.sensitiveLocationType &&
+                      report.sensitiveLocationType !==
+                        "None" && (
+
+                      <div className="sensitive-location-card">
+
+                        <div className="sensitive-location-title">
+                          <strong>
+                            ⚠️ Nearby Important Location
+                          </strong>
+                        </div>
+
+                        <p>
+                          <strong>
+                            Type:
+                          </strong>{" "}
+                          {
+                            report.sensitiveLocationType
+                          }
+                        </p>
+
+                        {report.sensitiveLocationName && (
+
+                          <p>
+                            <strong>
+                              Name:
+                            </strong>{" "}
+                            {
+                              report.sensitiveLocationName
+                            }
+                          </p>
+
+                        )}
+
+                        {report.sensitiveLocationDistance && (
+
+                          <p>
+                            <strong>
+                              Approximate Distance:
+                            </strong>{" "}
+                            {
+                              report.sensitiveLocationDistance
+                            }{" "}
+                            metres
+                          </p>
+
+                        )}
+
+                        <small>
+                          User-reported location context
+                        </small>
+
+                      </div>
+
+                    )}
+
+
                     {/* DESCRIPTION */}
 
                     <p className="report-description">
@@ -557,6 +716,7 @@ function CitizenDashboard() {
                         report.description
                       }
                     </p>
+
 
                     {/* LOCATION */}
 
@@ -582,6 +742,7 @@ function CitizenDashboard() {
 
                     </div>
 
+
                     {/* DATE */}
 
                     <p className="report-date">
@@ -593,6 +754,7 @@ function CitizenDashboard() {
                       ).toLocaleString()}
 
                     </p>
+
 
                     {/* --------------------------------------------------
                         COLLECTED REPORT
@@ -629,6 +791,7 @@ function CitizenDashboard() {
                       </div>
 
                     )}
+
 
                     {/* --------------------------------------------------
                         RATING

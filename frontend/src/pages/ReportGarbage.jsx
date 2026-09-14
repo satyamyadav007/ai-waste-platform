@@ -13,11 +13,25 @@ function ReportGarbage() {
   const [garbageType, setGarbageType] = useState("");
   const [description, setDescription] = useState("");
 
+  // --------------------------------------------------
+  // CONTEXT-AWARE LOCATION
+  // --------------------------------------------------
+
+  const [sensitiveLocationType, setSensitiveLocationType] =
+    useState("None");
+
+  const [sensitiveLocationName, setSensitiveLocationName] =
+    useState("");
+
+  const [sensitiveLocationDistance, setSensitiveLocationDistance] =
+    useState("");
+
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
 
   const [duplicateResult, setDuplicateResult] =
     useState(null);
+
   const [duplicateLoading, setDuplicateLoading] =
     useState(false);
 
@@ -719,6 +733,23 @@ function ReportGarbage() {
       longitude:
         location.longitude,
 
+      // --------------------------------------------------
+      // CONTEXT-AWARE LOCATION
+      // --------------------------------------------------
+
+      sensitiveLocationType:
+        sensitiveLocationType,
+
+      sensitiveLocationName:
+        sensitiveLocationName.trim(),
+
+      sensitiveLocationDistance:
+        sensitiveLocationDistance
+          ? Number(
+              sensitiveLocationDistance
+            )
+          : null,
+
       status:
         "Pending",
 
@@ -792,10 +823,6 @@ function ReportGarbage() {
         return;
       }
 
-      // --------------------------------------------------
-      // REPORT IS NOW STORED ONLY IN MONGODB
-      // --------------------------------------------------
-
       console.log(
         "Garbage report saved successfully in MongoDB:"
       );
@@ -826,6 +853,18 @@ function ReportGarbage() {
 
       setDuplicateResult(
         null
+      );
+
+      setSensitiveLocationType(
+        "None"
+      );
+
+      setSensitiveLocationName(
+        ""
+      );
+
+      setSensitiveLocationDistance(
+        ""
       );
 
     } catch (error) {
@@ -990,6 +1029,7 @@ function ReportGarbage() {
 
           </div>
 
+
           {/* AI ANALYSIS */}
 
           {image && (
@@ -1092,6 +1132,7 @@ function ReportGarbage() {
 
           )}
 
+
           {/* GARBAGE TYPE */}
 
           <div className="form-group">
@@ -1144,6 +1185,7 @@ function ReportGarbage() {
 
           </div>
 
+
           {/* DESCRIPTION */}
 
           <div className="form-group">
@@ -1167,6 +1209,7 @@ function ReportGarbage() {
             ></textarea>
 
           </div>
+
 
           {/* LOCATION */}
 
@@ -1224,6 +1267,220 @@ function ReportGarbage() {
             </p>
 
           </div>
+
+
+          {/* ========================================== */}
+          {/* CONTEXT-AWARE LOCATION */}
+          {/* ========================================== */}
+
+          <div className="context-location-box">
+
+            <div className="context-location-heading">
+
+              <h3>
+                🌍 Nearby Sensitive Location
+              </h3>
+
+              <p>
+                Tell us whether this garbage is
+                near an important public or
+                environmental location.
+              </p>
+
+            </div>
+
+
+            <div className="form-group">
+
+              <label htmlFor="sensitive-location-type">
+                Location Type
+              </label>
+
+              <select
+                id="sensitive-location-type"
+                value={
+                  sensitiveLocationType
+                }
+                onChange={(event) => {
+                  setSensitiveLocationType(
+                    event.target.value
+                  );
+
+                  if (
+                    event.target.value ===
+                    "None"
+                  ) {
+                    setSensitiveLocationName(
+                      ""
+                    );
+
+                    setSensitiveLocationDistance(
+                      ""
+                    );
+                  }
+                }}
+              >
+
+                <option value="None">
+                  None
+                </option>
+
+                <option value="Hospital / Clinic">
+                  Hospital / Clinic
+                </option>
+
+                <option value="School">
+                  School
+                </option>
+
+                <option value="College / University">
+                  College / University
+                </option>
+
+                <option value="River / Lake / Pond">
+                  River / Lake / Pond
+                </option>
+
+                <option value="Drain / Sewer / Water Channel">
+                  Drain / Sewer / Water Channel
+                </option>
+
+                <option value="Market / Shopping Area">
+                  Market / Shopping Area
+                </option>
+
+                <option value="Residential Area">
+                  Residential Area
+                </option>
+
+                <option value="Park / Playground">
+                  Park / Playground
+                </option>
+
+                <option value="Religious / Public Place">
+                  Religious / Public Place
+                </option>
+
+                <option value="Transport Hub">
+                  Transport Hub
+                </option>
+
+                <option value="Industrial Area">
+                  Industrial Area
+                </option>
+
+                <option value="Other">
+                  Other
+                </option>
+
+              </select>
+
+            </div>
+
+
+            {sensitiveLocationType !==
+              "None" && (
+
+              <>
+
+                <div className="form-group">
+
+                  <label htmlFor="sensitive-location-name">
+                    Location Name{" "}
+                    <span className="optional-text">
+                      (Optional)
+                    </span>
+                  </label>
+
+                  <input
+                    id="sensitive-location-name"
+                    type="text"
+                    placeholder="e.g. City Hospital"
+                    value={
+                      sensitiveLocationName
+                    }
+                    onChange={(event) =>
+                      setSensitiveLocationName(
+                        event.target.value
+                      )
+                    }
+                  />
+
+                </div>
+
+
+                <div className="form-group">
+
+                  <label htmlFor="sensitive-location-distance">
+                    Approximate Distance{" "}
+                    <span className="optional-text">
+                      (Optional)
+                    </span>
+                  </label>
+
+                  <select
+                    id="sensitive-location-distance"
+                    value={
+                      sensitiveLocationDistance
+                    }
+                    onChange={(event) =>
+                      setSensitiveLocationDistance(
+                        event.target.value
+                      )
+                    }
+                  >
+
+                    <option value="">
+                      Select approximate distance
+                    </option>
+
+                    <option value="50">
+                      Within 50 metres
+                    </option>
+
+                    <option value="100">
+                      50–100 metres
+                    </option>
+
+                    <option value="250">
+                      100–250 metres
+                    </option>
+
+                    <option value="500">
+                      250–500 metres
+                    </option>
+
+                    <option value="1000">
+                      More than 500 metres
+                    </option>
+
+                  </select>
+
+                </div>
+
+              </>
+
+            )}
+
+
+            <div className="context-location-note">
+
+              <span>
+                💡
+              </span>
+
+              <p>
+                This information is currently
+                <strong> user-reported</strong> and
+                will help CleanBharat understand
+                the context and potential impact
+                of the waste location.
+              </p>
+
+            </div>
+
+          </div>
+
 
           {/* DUPLICATE CHECK */}
 
@@ -1308,6 +1565,7 @@ function ReportGarbage() {
             </div>
 
           )}
+
 
           {/* SUBMIT */}
 

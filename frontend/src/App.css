@@ -3314,3 +3314,185 @@ a {
     margin-bottom: 24px;
   }
 }
+
+/* ================================= */
+/* CONTEXT-AWARE LOCATION */
+/* ================================= */
+
+.context-location-box {
+  padding: 22px;
+  border: 1px solid #dce7df;
+  border-radius: 14px;
+  background: #f7faf8;
+}
+
+.context-location-heading {
+  margin-bottom: 20px;
+}
+
+.context-location-heading h3 {
+  margin: 0 0 7px;
+  color: #1d2a20;
+  font-size: 18px;
+}
+
+.context-location-heading p {
+  margin: 0;
+  color: #68736b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.context-location-box .form-group {
+  margin-bottom: 18px;
+}
+
+.context-location-box input,
+.context-location-box select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.optional-text {
+  color: #89948c;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.context-location-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: #edf6ef;
+  border: 1px solid #d7e9da;
+}
+
+.context-location-note span {
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.context-location-note p {
+  margin: 0;
+  color: #5f6d63;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.context-location-note strong {
+  color: #238636;
+}
+
+/* ================================= */
+/* REPORT PRIORITY */
+/* ================================= */
+
+.report-priority-box {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border: 1px solid #dce7df;
+  border-radius: 12px;
+  background: #f7faf8;
+}
+
+.report-priority-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.report-priority-header strong {
+  color: #263229;
+  font-size: 14px;
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.priority-high {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.priority-medium {
+  background: #fff4d6;
+  color: #a16207;
+}
+
+.priority-low {
+  background: #e7f6ea;
+  color: #237a35;
+}
+
+.priority-unknown {
+  background: #eef1ef;
+  color: #68736b;
+}
+
+.priority-reason {
+  margin: 10px 0 0;
+  color: #68736b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+/* ================================= */
+/* SENSITIVE LOCATION */
+/* ================================= */
+
+.sensitive-location-card {
+  margin: 15px 0;
+  padding: 16px 18px;
+  border: 1px solid #ead9a9;
+  border-radius: 12px;
+  background: #fffaf0;
+}
+
+.sensitive-location-title {
+  margin-bottom: 10px;
+  color: #8a6400;
+  font-size: 14px;
+}
+
+.sensitive-location-card p {
+  margin: 6px 0;
+  color: #5f5a4c;
+  font-size: 13px;
+}
+
+.sensitive-location-card small {
+  display: block;
+  margin-top: 10px;
+  color: #938b78;
+  font-size: 11px;
+}
+
+
+/* ================================= */
+/* MOBILE */
+/* ================================= */
+
+@media (max-width: 600px) {
+
+  .report-priority-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .priority-badge {
+    font-size: 11px;
+  }
+
+}
