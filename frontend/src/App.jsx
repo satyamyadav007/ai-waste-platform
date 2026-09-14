@@ -17,7 +17,6 @@ import CollectorDashboard from "./pages/CollectorDashboard";
 import Hotspots from "./pages/Hotspots";
 import AdminDashboard from "./pages/AdminDashboard";
 
-
 // --------------------------------------------------
 // GET LOGGED-IN USER
 // --------------------------------------------------
@@ -36,7 +35,6 @@ function getLoggedInUser() {
     return null;
   }
 }
-
 
 // --------------------------------------------------
 // CITIZEN PROTECTED ROUTE
@@ -66,6 +64,65 @@ function ProtectedCitizenDashboard() {
   return <CitizenDashboard />;
 }
 
+// --------------------------------------------------
+// CITIZEN PROTECTED REPORT ROUTE
+// --------------------------------------------------
+
+function ProtectedReportGarbage() {
+  const user = getLoggedInUser();
+
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  if (user.role !== "citizen") {
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    );
+  }
+
+  return <ReportGarbage />;
+}
+
+// --------------------------------------------------
+// PROTECTED HOTSPOTS ROUTE
+// --------------------------------------------------
+
+function ProtectedHotspots() {
+  const user = getLoggedInUser();
+
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  if (
+    user.role !== "citizen" &&
+    user.role !== "collector" &&
+    user.role !== "admin"
+  ) {
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    );
+  }
+
+  return <Hotspots />;
+}
 
 // --------------------------------------------------
 // COLLECTOR PROTECTED ROUTE
@@ -95,7 +152,6 @@ function ProtectedCollectorDashboard() {
   return <CollectorDashboard />;
 }
 
-
 // --------------------------------------------------
 // ADMIN PROTECTED ROUTE
 // --------------------------------------------------
@@ -124,7 +180,6 @@ function ProtectedAdminDashboard() {
   return <AdminDashboard />;
 }
 
-
 // --------------------------------------------------
 // MAIN APP
 // --------------------------------------------------
@@ -138,34 +193,37 @@ function App() {
       <Routes>
 
         {/* HOME */}
+
         <Route
           path="/"
           element={<Home />}
         />
 
-
         {/* REPORT GARBAGE */}
+
         <Route
           path="/report"
-          element={<ReportGarbage />}
+          element={
+            <ProtectedReportGarbage />
+          }
         />
 
-
         {/* LOGIN */}
+
         <Route
           path="/login"
           element={<Login />}
         />
 
-
         {/* REGISTER */}
+
         <Route
           path="/register"
           element={<Register />}
         />
 
-
         {/* CITIZEN DASHBOARD */}
+
         <Route
           path="/dashboard"
           element={
@@ -173,8 +231,8 @@ function App() {
           }
         />
 
-
         {/* COLLECTOR DASHBOARD */}
+
         <Route
           path="/collector-dashboard"
           element={
@@ -182,15 +240,17 @@ function App() {
           }
         />
 
-
         {/* HOTSPOTS */}
+
         <Route
           path="/hotspots"
-          element={<Hotspots />}
+          element={
+            <ProtectedHotspots />
+          }
         />
 
-
         {/* ADMIN DASHBOARD */}
+
         <Route
           path="/admin-dashboard"
           element={

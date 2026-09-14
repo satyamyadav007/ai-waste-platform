@@ -7,10 +7,13 @@ import { Link } from "react-router-dom";
 function Home() {
   return (
     <main>
+
       <Hero />
 
       <section className="smart-system-section">
+
         <div className="smart-system-heading">
+
           <p className="section-tag">
             SMART WASTE MANAGEMENT
           </p>
@@ -25,11 +28,14 @@ function Home() {
             to make waste management smarter and
             more transparent.
           </p>
+
         </div>
+
 
         <div className="smart-system-grid">
 
           <div className="smart-system-card">
+
             <div className="smart-system-icon">
               🤖
             </div>
@@ -43,10 +49,12 @@ function Home() {
               garbage, classify waste type and estimate
               severity.
             </p>
+
           </div>
 
 
           <div className="smart-system-card">
+
             <div className="smart-system-icon">
               🚨
             </div>
@@ -60,10 +68,12 @@ function Home() {
               severity so high-priority garbage
               problems can be handled first.
             </p>
+
           </div>
 
 
           <div className="smart-system-card">
+
             <div className="smart-system-icon">
               🔍
             </div>
@@ -77,10 +87,12 @@ function Home() {
               to help verify whether the reported
               garbage was actually removed.
             </p>
+
           </div>
 
 
           <div className="smart-system-card">
+
             <div className="smart-system-icon">
               🔥
             </div>
@@ -94,17 +106,30 @@ function Home() {
               are used to identify recurring garbage
               hotspots.
             </p>
+
           </div>
 
         </div>
+
       </section>
 
-      <HowItWorks />
+
+      {/* HOW IT WORKS */}
+
+      <div id="how-it-works">
+        <HowItWorks />
+      </div>
+
 
       <AIFeatures />
 
+
+      {/* PLATFORM FEATURES */}
+
       <section className="platform-features">
+
         <div className="platform-features-heading">
+
           <p className="section-tag">
             PLATFORM FEATURES
           </p>
@@ -117,11 +142,16 @@ function Home() {
             Access the different parts of the
             CleanBharat waste management platform.
           </p>
+
         </div>
+
 
         <div className="platform-feature-grid">
 
+          {/* HOTSPOTS */}
+
           <div className="platform-feature-card">
+
             <div className="platform-feature-icon">
               🔥
             </div>
@@ -141,10 +171,14 @@ function Home() {
             >
               View Hotspots
             </Link>
+
           </div>
 
 
+          {/* ADMIN */}
+
           <div className="platform-feature-card">
+
             <div className="platform-feature-icon">
               🛡️
             </div>
@@ -164,10 +198,14 @@ function Home() {
             >
               View Admin Dashboard
             </Link>
+
           </div>
 
 
+          {/* COLLECTOR */}
+
           <div className="platform-feature-card">
+
             <div className="platform-feature-icon">
               🚛
             </div>
@@ -187,12 +225,16 @@ function Home() {
             >
               Open Collector Portal
             </Link>
+
           </div>
 
         </div>
+
       </section>
 
+
       <Footer />
+
     </main>
   );
 }

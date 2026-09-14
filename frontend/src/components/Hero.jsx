@@ -1,8 +1,14 @@
+import { Link } from "react-router-dom";
+
 function Hero() {
   return (
     <section className="hero">
+
       <div className="hero-content">
-        <p className="hero-tag">AI-POWERED WASTE MANAGEMENT</p>
+
+        <p className="hero-tag">
+          AI-POWERED WASTE MANAGEMENT
+        </p>
 
         <h1>
           See Waste.
@@ -18,10 +24,19 @@ function Hero() {
         </p>
 
         <div className="hero-buttons">
-          <button>Report Garbage</button>
-          <button>Learn How It Works</button>
+
+          <Link to="/report">
+            Report Garbage
+          </Link>
+
+          <a href="#how-it-works">
+            Learn How It Works
+          </a>
+
         </div>
+
       </div>
+
     </section>
   );
 }
