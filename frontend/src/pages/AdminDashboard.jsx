@@ -32,8 +32,6 @@ function AdminDashboard() {
 
         // --------------------------------------------------
         // NORMALIZE MONGODB REPORTS
-        // MongoDB uses reportId, while the old frontend
-        // used id.
         // --------------------------------------------------
 
         const normalizedReports =
@@ -71,6 +69,82 @@ function AdminDashboard() {
 
     fetchReports();
   }, []);
+
+  // --------------------------------------------------
+  // PRIORITY HELPERS
+  // --------------------------------------------------
+
+  function getPriorityValue(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return 3;
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return 2;
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  function getPriorityClass(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "priority-high";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "priority-medium";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "priority-low";
+    }
+
+    return "priority-unknown";
+  }
+
+  function getPriorityIcon(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "🔴";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "🟠";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "🟢";
+    }
+
+    return "⚪";
+  }
 
   // --------------------------------------------------
   // LOADING STATE
@@ -194,29 +268,69 @@ function AdminDashboard() {
         report.status === "Resolved"
     ).length;
 
+  // --------------------------------------------------
+  // CONTEXT-AWARE PRIORITY COUNTS
+  // --------------------------------------------------
+
   const highPriorityReports =
     reports.filter(
       (report) =>
-        report.aiResult &&
-        report.aiResult.severity === "High" &&
+        report.priority === "High" &&
         report.status === "Pending"
     ).length;
 
   const mediumPriorityReports =
     reports.filter(
       (report) =>
-        report.aiResult &&
-        report.aiResult.severity === "Medium" &&
+        report.priority === "Medium" &&
         report.status === "Pending"
     ).length;
 
   const lowPriorityReports =
     reports.filter(
       (report) =>
-        report.aiResult &&
-        report.aiResult.severity === "Low" &&
+        report.priority === "Low" &&
         report.status === "Pending"
     ).length;
+
+  // --------------------------------------------------
+  // SENSITIVE LOCATION COUNTS
+  // --------------------------------------------------
+
+  const sensitiveLocationReports =
+    reports.filter(
+      (report) =>
+        report.sensitiveLocationType &&
+        report.sensitiveLocationType !==
+          "None"
+    );
+
+  const hospitalReports =
+    reports.filter(
+      (report) =>
+        report.sensitiveLocationType ===
+        "Hospital / Clinic"
+    ).length;
+
+  const waterBodyReports =
+    reports.filter(
+      (report) =>
+        report.sensitiveLocationType ===
+        "River / Lake / Pond"
+    ).length;
+
+  const schoolReports =
+    reports.filter(
+      (report) =>
+        report.sensitiveLocationType ===
+          "School" ||
+        report.sensitiveLocationType ===
+          "College / University"
+    ).length;
+
+  // --------------------------------------------------
+  // RATING
+  // --------------------------------------------------
 
   const ratedReports =
     reports.filter(
@@ -233,7 +347,8 @@ function AdminDashboard() {
               total +
               Number(report.rating),
             0
-          ) / ratedReports.length
+          ) /
+          ratedReports.length
         ).toFixed(1)
       : "0.0";
 
@@ -402,18 +517,21 @@ function AdminDashboard() {
 
   function getHotspotRisk(
     reportCount,
-    highPriorityCount
+    highPriorityCount,
+    sensitiveCount
   ) {
 
     if (
       reportCount >= 5 ||
-      highPriorityCount >= 2
+      highPriorityCount >= 2 ||
+      sensitiveCount >= 2
     ) {
       return "High";
     }
 
     if (
-      reportCount >= 3
+      reportCount >= 3 ||
+      sensitiveCount >= 1
     ) {
       return "Medium";
     }
@@ -494,9 +612,17 @@ function AdminDashboard() {
         const highPriorityCount =
           hotspot.reports.filter(
             (report) =>
-              report.aiResult &&
-              report.aiResult.severity ===
+              report.priority ===
                 "High" &&
+              report.status ===
+                "Pending"
+          ).length;
+
+        const mediumPriorityCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.priority ===
+                "Medium" &&
               report.status ===
                 "Pending"
           ).length;
@@ -517,10 +643,33 @@ function AdminDashboard() {
                 "Resolved"
           ).length;
 
+        const sensitiveCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.sensitiveLocationType &&
+              report.sensitiveLocationType !==
+                "None"
+          ).length;
+
+        const hospitalCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.sensitiveLocationType ===
+              "Hospital / Clinic"
+          ).length;
+
+        const waterBodyCount =
+          hotspot.reports.filter(
+            (report) =>
+              report.sensitiveLocationType ===
+              "River / Lake / Pond"
+          ).length;
+
         const riskLevel =
           getHotspotRisk(
             hotspot.reportCount,
-            highPriorityCount
+            highPriorityCount,
+            sensitiveCount
           );
 
         const commonGarbage =
@@ -544,9 +693,17 @@ function AdminDashboard() {
 
           highPriorityCount,
 
+          mediumPriorityCount,
+
           pendingCount,
 
           collectedCount,
+
+          sensitiveCount,
+
+          hospitalCount,
+
+          waterBodyCount,
 
           riskLevel,
 
@@ -597,6 +754,7 @@ function AdminDashboard() {
 
       </div>
 
+
       {/* --------------------------------------------------
           ADMIN STATISTICS
       -------------------------------------------------- */}
@@ -623,6 +781,7 @@ function AdminDashboard() {
 
         </div>
 
+
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -642,6 +801,7 @@ function AdminDashboard() {
           </div>
 
         </div>
+
 
         <div className="stat-card">
 
@@ -663,6 +823,7 @@ function AdminDashboard() {
 
         </div>
 
+
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -683,6 +844,7 @@ function AdminDashboard() {
 
         </div>
 
+
         <div className="stat-card">
 
           <span className="stat-icon">
@@ -702,6 +864,7 @@ function AdminDashboard() {
           </div>
 
         </div>
+
 
         <div className="stat-card">
 
@@ -725,13 +888,12 @@ function AdminDashboard() {
 
       </div>
 
+
       {/* --------------------------------------------------
-          PRIORITY + COLLECTION OVERVIEW
+          CONTEXT SUMMARY
       -------------------------------------------------- */}
 
       <div className="admin-overview">
-
-        {/* PRIORITY */}
 
         <div className="overview-card">
 
@@ -740,89 +902,92 @@ function AdminDashboard() {
             <div>
 
               <p className="dashboard-tag">
-                AI PRIORITY
+                CONTEXT INTELLIGENCE
               </p>
 
               <h2>
-                Priority Overview
+                Sensitive Location Overview
               </h2>
 
             </div>
 
             <span className="overview-icon">
-              🤖
+              🌍
             </span>
 
           </div>
+
 
           <div className="priority-overview-grid">
 
             <div className="priority-overview-item high">
 
               <div className="priority-overview-icon">
-                🔴
+                🏥
               </div>
 
               <div>
 
                 <p>
-                  High Priority
+                  Hospital / Clinic
                 </p>
 
                 <h3>
-                  {highPriorityReports}
+                  {hospitalReports}
                 </h3>
 
                 <span>
-                  Pending reports
+                  Reports near healthcare facilities
                 </span>
 
               </div>
 
             </div>
+
 
             <div className="priority-overview-item medium">
 
               <div className="priority-overview-icon">
-                🟠
+                🌊
               </div>
 
               <div>
 
                 <p>
-                  Medium Priority
+                  Water Bodies
                 </p>
 
                 <h3>
-                  {mediumPriorityReports}
+                  {waterBodyReports}
                 </h3>
 
                 <span>
-                  Pending reports
+                  Reports near water environments
                 </span>
 
               </div>
 
             </div>
 
+
             <div className="priority-overview-item low">
 
               <div className="priority-overview-icon">
-                🟢
+                🏫
               </div>
 
               <div>
 
                 <p>
-                  Low Priority
+                  Schools / Colleges
                 </p>
 
                 <h3>
-                  {lowPriorityReports}
+                  {schoolReports}
                 </h3>
 
                 <span>
-                  Pending reports
+                  Reports near educational areas
                 </span>
 
               </div>
@@ -831,7 +996,22 @@ function AdminDashboard() {
 
           </div>
 
+
+          <div className="context-summary-line">
+
+            <strong>
+              {sensitiveLocationReports.length}
+            </strong>{" "}
+            of{" "}
+            <strong>
+              {totalReports}
+            </strong>{" "}
+            reports include nearby-location context.
+
+          </div>
+
         </div>
+
 
         {/* COLLECTION */}
 
@@ -856,6 +1036,7 @@ function AdminDashboard() {
             </span>
 
           </div>
+
 
           <div className="collection-overview">
 
@@ -882,6 +1063,7 @@ function AdminDashboard() {
               </div>
 
             </div>
+
 
             <div className="collection-overview-item">
 
@@ -913,6 +1095,128 @@ function AdminDashboard() {
 
       </div>
 
+
+      {/* --------------------------------------------------
+          PRIORITY OVERVIEW
+      -------------------------------------------------- */}
+
+      <div className="reports-section">
+
+        <div className="section-title">
+
+          <div>
+
+            <p className="dashboard-tag">
+              CONTEXT-AWARE AI
+            </p>
+
+            <h2>
+              Priority Overview
+            </h2>
+
+            <p>
+              Current pending reports ranked by
+              context-aware system priority.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div className="priority-dashboard-grid">
+
+          <div className="admin-priority-card high">
+
+            <div className="admin-priority-card-top">
+
+              <span>
+                🔴
+              </span>
+
+              <div>
+
+                <p>
+                  High Priority
+                </p>
+
+                <h2>
+                  {highPriorityReports}
+                </h2>
+
+              </div>
+
+            </div>
+
+            <small>
+              Requires urgent attention
+            </small>
+
+          </div>
+
+
+          <div className="admin-priority-card medium">
+
+            <div className="admin-priority-card-top">
+
+              <span>
+                🟠
+              </span>
+
+              <div>
+
+                <p>
+                  Medium Priority
+                </p>
+
+                <h2>
+                  {mediumPriorityReports}
+                </h2>
+
+              </div>
+
+            </div>
+
+            <small>
+              Requires timely collection
+            </small>
+
+          </div>
+
+
+          <div className="admin-priority-card low">
+
+            <div className="admin-priority-card-top">
+
+              <span>
+                🟢
+              </span>
+
+              <div>
+
+                <p>
+                  Low Priority
+                </p>
+
+                <h2>
+                  {lowPriorityReports}
+                </h2>
+
+              </div>
+
+            </div>
+
+            <small>
+              Standard collection priority
+            </small>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
       {/* --------------------------------------------------
           HOTSPOT INTELLIGENCE
       -------------------------------------------------- */}
@@ -932,13 +1236,14 @@ function AdminDashboard() {
             </h2>
 
             <p>
-              Analyze recurring garbage clusters
-              and identify areas that need attention.
+              Analyze recurring garbage clusters,
+              priority, and sensitive-location context.
             </p>
 
           </div>
 
         </div>
+
 
         {hotspotData.length > 0 ? (
 
@@ -974,6 +1279,7 @@ function AdminDashboard() {
 
                   </div>
 
+
                   <div className="hotspot-main-count">
 
                     <strong>
@@ -985,6 +1291,7 @@ function AdminDashboard() {
                     </span>
 
                   </div>
+
 
                   <div className="hotspot-details-grid">
 
@@ -1004,6 +1311,7 @@ function AdminDashboard() {
 
                     </div>
 
+
                     <div>
 
                       <span>
@@ -1019,6 +1327,7 @@ function AdminDashboard() {
                       </strong>
 
                     </div>
+
 
                     <div>
 
@@ -1036,23 +1345,25 @@ function AdminDashboard() {
 
                     </div>
 
+
                     <div>
 
                       <span>
-                        🗑️
+                        ⚠️
                       </span>
 
                       <p>
-                        Common Garbage
+                        Sensitive Context
                       </p>
 
                       <strong>
-                        {hotspot.commonGarbage}
+                        {hotspot.sensitiveCount}
                       </strong>
 
                     </div>
 
                   </div>
+
 
                   <div className="hotspot-location">
 
@@ -1063,6 +1374,69 @@ function AdminDashboard() {
                     <p>
                       {hotspot.latitude},{" "}
                       {hotspot.longitude}
+                    </p>
+
+                  </div>
+
+
+                  <div className="hotspot-context">
+
+                    <strong>
+                      🧠 Context
+                    </strong>
+
+                    {hotspot.hospitalCount >
+                      0 && (
+
+                      <p>
+                        🏥{" "}
+                        {
+                          hotspot.hospitalCount
+                        }{" "}
+                        hospital-related report
+                        {hotspot.hospitalCount > 1
+                          ? "s"
+                          : ""}
+                      </p>
+
+                    )}
+
+                    {hotspot.waterBodyCount >
+                      0 && (
+
+                      <p>
+                        🌊{" "}
+                        {
+                          hotspot.waterBodyCount
+                        }{" "}
+                        water-body report
+                        {hotspot.waterBodyCount > 1
+                          ? "s"
+                          : ""}
+                      </p>
+
+                    )}
+
+                    {hotspot.sensitiveCount ===
+                      0 && (
+
+                      <p>
+                        No sensitive-location context reported.
+                      </p>
+
+                    )}
+
+                  </div>
+
+
+                  <div className="hotspot-common-garbage">
+
+                    <strong>
+                      🗑️ Common Garbage
+                    </strong>
+
+                    <p>
+                      {hotspot.commonGarbage}
                     </p>
 
                   </div>
@@ -1097,6 +1471,7 @@ function AdminDashboard() {
 
       </div>
 
+
       {/* --------------------------------------------------
           ADMIN MAP
       -------------------------------------------------- */}
@@ -1117,7 +1492,7 @@ function AdminDashboard() {
 
             <p>
               Monitor reported garbage locations
-              and their AI-based priority.
+              and their context-aware priority.
             </p>
 
           </div>
@@ -1129,6 +1504,7 @@ function AdminDashboard() {
         />
 
       </div>
+
 
       {/* --------------------------------------------------
           RECENT ACTIVITY
@@ -1151,6 +1527,7 @@ function AdminDashboard() {
           </div>
 
         </div>
+
 
         {reports.length > 0 ? (
 
@@ -1180,6 +1557,7 @@ function AdminDashboard() {
 
                     </div>
 
+
                     <div className="report-card-content">
 
                       <div className="report-card-header">
@@ -1206,11 +1584,97 @@ function AdminDashboard() {
 
                       </div>
 
+
+                      {/* PRIORITY */}
+
+                      <div className="admin-report-priority">
+
+                        <div className="admin-report-priority-header">
+
+                          <strong>
+                            Context-Aware Priority
+                          </strong>
+
+                          <span
+                            className={`priority-badge ${getPriorityClass(
+                              report.priority
+                            )}`}
+                          >
+                            {getPriorityIcon(
+                              report.priority
+                            )}{" "}
+                            {report.priority ||
+                              "Not Calculated"}
+                          </span>
+
+                        </div>
+
+                        {report.priorityReason && (
+
+                          <p>
+                            {
+                              report.priorityReason
+                            }
+                          </p>
+
+                        )}
+
+                      </div>
+
+
+                      {/* SENSITIVE LOCATION */}
+
+                      {report.sensitiveLocationType &&
+                        report.sensitiveLocationType !==
+                          "None" && (
+
+                        <div className="admin-sensitive-location">
+
+                          <strong>
+                            ⚠️ Nearby Important Location
+                          </strong>
+
+                          <p>
+                            Type:{" "}
+                            {
+                              report.sensitiveLocationType
+                            }
+                          </p>
+
+                          {report.sensitiveLocationName && (
+
+                            <p>
+                              Name:{" "}
+                              {
+                                report.sensitiveLocationName
+                              }
+                            </p>
+
+                          )}
+
+                          {report.sensitiveLocationDistance && (
+
+                            <p>
+                              Approximate Distance:{" "}
+                              {
+                                report.sensitiveLocationDistance
+                              }{" "}
+                              metres
+                            </p>
+
+                          )}
+
+                        </div>
+
+                      )}
+
+
                       <p className="report-description">
                         {
                           report.description
                         }
                       </p>
+
 
                       {report.aiResult && (
 
@@ -1227,10 +1691,11 @@ function AdminDashboard() {
                                 report
                                   .aiResult
                                   .severity
-                              } Priority
+                              } Severity
                             </span>
 
                           </div>
+
 
                           <p>
 
@@ -1248,6 +1713,7 @@ function AdminDashboard() {
 
                           </p>
 
+
                           <p>
 
                             <strong>
@@ -1261,6 +1727,7 @@ function AdminDashboard() {
                             }%
 
                           </p>
+
 
                           <p>
 
@@ -1279,6 +1746,7 @@ function AdminDashboard() {
                         </div>
 
                       )}
+
 
                       <div className="report-location">
 
@@ -1302,6 +1770,7 @@ function AdminDashboard() {
 
                       </div>
 
+
                       <p className="report-date">
 
                         📅 Submitted:{" "}
@@ -1311,6 +1780,7 @@ function AdminDashboard() {
                         ).toLocaleString()}
 
                       </p>
+
 
                       {report.rating && (
 

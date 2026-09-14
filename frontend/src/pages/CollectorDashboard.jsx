@@ -112,13 +112,11 @@ function CollectorDashboard() {
     }
 
     try {
-      // Persistent Data URL for MongoDB
       const dataUrl =
         await fileToDataUrl(
           file
         );
 
-      // Use the persistent Data URL for preview
       setProofImages(
         (previousImages) => ({
           ...previousImages,
@@ -128,7 +126,6 @@ function CollectorDashboard() {
         })
       );
 
-      // Keep original File object for AI verification
       setProofFiles(
         (previousFiles) => ({
           ...previousFiles,
@@ -385,10 +382,6 @@ function CollectorDashboard() {
       return;
     }
 
-    // --------------------------------------------------
-    // UPDATE REPORT IN MONGODB
-    // --------------------------------------------------
-
     try {
       console.log(
         "Updating garbage report in MongoDB..."
@@ -435,10 +428,6 @@ function CollectorDashboard() {
 
         return;
       }
-
-      // --------------------------------------------------
-      // UPDATE FRONTEND STATE
-      // --------------------------------------------------
 
       const updatedReports =
         reports.map(
@@ -606,71 +595,115 @@ function CollectorDashboard() {
   }
 
   // --------------------------------------------------
-  // PRIORITY TEXT
-  // --------------------------------------------------
-
-  function getPriorityText(
-    severity
-  ) {
-
-    if (
-      severity ===
-      "High"
-    ) {
-      return "High Priority";
-    }
-
-    if (
-      severity ===
-      "Medium"
-    ) {
-      return "Medium Priority";
-    }
-
-    if (
-      severity ===
-      "Low"
-    ) {
-      return "Low Priority";
-    }
-
-    return "Priority Not Available";
-  }
-
-  // --------------------------------------------------
   // PRIORITY VALUE
   // --------------------------------------------------
 
   function getPriorityValue(
-    report
+    priority
   ) {
-
-    if (!report.aiResult) {
-      return 0;
-    }
-
     if (
-      report.aiResult.severity ===
-      "High"
+      priority === "High"
     ) {
       return 3;
     }
 
     if (
-      report.aiResult.severity ===
-      "Medium"
+      priority === "Medium"
     ) {
       return 2;
     }
 
     if (
-      report.aiResult.severity ===
-      "Low"
+      priority === "Low"
     ) {
       return 1;
     }
 
     return 0;
+  }
+
+  // --------------------------------------------------
+  // PRIORITY CLASS
+  // --------------------------------------------------
+
+  function getPriorityClass(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "priority-high";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "priority-medium";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "priority-low";
+    }
+
+    return "priority-unknown";
+  }
+
+  // --------------------------------------------------
+  // PRIORITY ICON
+  // --------------------------------------------------
+
+  function getPriorityIcon(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "🔴";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "🟠";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "🟢";
+    }
+
+    return "⚪";
+  }
+
+  // --------------------------------------------------
+  // PRIORITY TEXT
+  // --------------------------------------------------
+
+  function getPriorityText(
+    priority
+  ) {
+    if (
+      priority === "High"
+    ) {
+      return "High Priority";
+    }
+
+    if (
+      priority === "Medium"
+    ) {
+      return "Medium Priority";
+    }
+
+    if (
+      priority === "Low"
+    ) {
+      return "Low Priority";
+    }
+
+    return "Priority Not Available";
   }
 
   // --------------------------------------------------
@@ -681,9 +714,27 @@ function CollectorDashboard() {
     [...reports].sort(
       (a, b) => {
 
+        const priorityDifference =
+          getPriorityValue(
+            b.priority
+          ) -
+          getPriorityValue(
+            a.priority
+          );
+
+        if (
+          priorityDifference !== 0
+        ) {
+          return priorityDifference;
+        }
+
         return (
-          getPriorityValue(b) -
-          getPriorityValue(a)
+          new Date(
+            a.createdAt
+          ) -
+          new Date(
+            b.createdAt
+          )
         );
 
       }
@@ -874,8 +925,8 @@ function CollectorDashboard() {
             </h2>
 
             <p>
-              Reports are automatically arranged
-              by AI priority.
+              Reports are arranged by
+              context-aware priority.
             </p>
 
           </div>
@@ -938,6 +989,108 @@ function CollectorDashboard() {
 
                     </div>
 
+
+                    {/* --------------------------------------------------
+                        CONTEXT-AWARE PRIORITY
+                    -------------------------------------------------- */}
+
+                    <div className="collector-priority-box">
+
+                      <div className="collector-priority-header">
+
+                        <strong>
+                          Context-Aware Priority
+                        </strong>
+
+                        <span
+                          className={`priority-badge ${getPriorityClass(
+                            report.priority
+                          )}`}
+                        >
+                          {getPriorityIcon(
+                            report.priority
+                          )}{" "}
+                          {getPriorityText(
+                            report.priority
+                          )}
+                        </span>
+
+                      </div>
+
+                      {report.priorityReason && (
+
+                        <p className="priority-reason">
+                          {report.priorityReason}
+                        </p>
+
+                      )}
+
+                    </div>
+
+
+                    {/* --------------------------------------------------
+                        SENSITIVE LOCATION
+                    -------------------------------------------------- */}
+
+                    {report.sensitiveLocationType &&
+                      report.sensitiveLocationType !==
+                        "None" && (
+
+                      <div className="collector-sensitive-location">
+
+                        <div className="collector-sensitive-title">
+
+                          <strong>
+                            ⚠️ Nearby Important Location
+                          </strong>
+
+                        </div>
+
+                        <p>
+                          <strong>
+                            Type:
+                          </strong>{" "}
+                          {
+                            report.sensitiveLocationType
+                          }
+                        </p>
+
+                        {report.sensitiveLocationName && (
+
+                          <p>
+                            <strong>
+                              Name:
+                            </strong>{" "}
+                            {
+                              report.sensitiveLocationName
+                            }
+                          </p>
+
+                        )}
+
+                        {report.sensitiveLocationDistance && (
+
+                          <p>
+                            <strong>
+                              Approximate Distance:
+                            </strong>{" "}
+                            {
+                              report.sensitiveLocationDistance
+                            }{" "}
+                            metres
+                          </p>
+
+                        )}
+
+                        <small>
+                          User-reported location context
+                        </small>
+
+                      </div>
+
+                    )}
+
+
                     {/* DESCRIPTION */}
 
                     <p className="report-description">
@@ -945,6 +1098,7 @@ function CollectorDashboard() {
                         report.description
                       }
                     </p>
+
 
                     {/* AI ANALYSIS */}
 
@@ -960,9 +1114,11 @@ function CollectorDashboard() {
 
                           <span className="ai-priority">
                             {
-                              getPriorityText(
-                                report.aiResult.severity
-                              )
+                              report
+                                .aiResult
+                                .severity
+                                ? `${report.aiResult.severity} Severity`
+                                : "Severity unavailable"
                             }
                           </span>
 
@@ -1037,6 +1193,7 @@ function CollectorDashboard() {
 
                     )}
 
+
                     {/* LOCATION */}
 
                     <div className="report-location">
@@ -1061,6 +1218,7 @@ function CollectorDashboard() {
 
                     </div>
 
+
                     {/* DATE */}
 
                     <p className="report-date">
@@ -1072,6 +1230,7 @@ function CollectorDashboard() {
                       ).toLocaleString()}
 
                     </p>
+
 
                     {/* --------------------------------------------------
                         PENDING REPORT ACTIONS
@@ -1102,6 +1261,7 @@ function CollectorDashboard() {
 
                         </label>
 
+
                         {/* PROOF PREVIEW */}
 
                         {proofImages[
@@ -1122,6 +1282,7 @@ function CollectorDashboard() {
                           </div>
 
                         )}
+
 
                         {/* AI VERIFICATION */}
 
@@ -1149,6 +1310,7 @@ function CollectorDashboard() {
                             : "🤖 Verify Collection with AI"}
 
                         </button>
+
 
                         {/* VERIFICATION RESULT */}
 
@@ -1188,7 +1350,7 @@ function CollectorDashboard() {
                                 verificationResults[
                                   report.id
                                 ].confidence
-                              }%
+                              }%{" "}
 
                             </p>
 
@@ -1210,6 +1372,7 @@ function CollectorDashboard() {
 
                         )}
 
+
                         {/* MARK COLLECTED */}
 
                         <button
@@ -1227,6 +1390,7 @@ function CollectorDashboard() {
                       </div>
 
                     )}
+
 
                     {/* --------------------------------------------------
                         COLLECTED REPORT PROOF
@@ -1259,6 +1423,7 @@ function CollectorDashboard() {
 
                         )}
 
+
                         {/* REPLACE PROOF */}
 
                         <label className="proof-upload">
@@ -1282,6 +1447,7 @@ function CollectorDashboard() {
                       </div>
 
                     )}
+
 
                     {/* --------------------------------------------------
                         COLLECTED REPORT VERIFICATION
