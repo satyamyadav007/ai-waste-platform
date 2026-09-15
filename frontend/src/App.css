@@ -4476,3 +4476,261 @@ a {
   }
 
 }
+
+/* ========================================== */
+/* REPORT IMAGE CAMERA + GALLERY */
+/* ========================================== */
+
+.image-choice-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.image-choice-button {
+  border: 2px solid #dfe8e2;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: 0.2s ease;
+  font-family: inherit;
+}
+
+.image-choice-button:hover {
+  transform: translateY(-2px);
+  border-color: #2e7d32;
+}
+
+.image-choice-button strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.image-choice-button small {
+  display: block;
+  color: #666;
+  font-size: 13px;
+}
+
+.image-choice-icon {
+  font-size: 30px;
+  flex-shrink: 0;
+}
+
+.image-preview-wrapper {
+  margin-top: 10px;
+}
+
+.report-image-preview {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+}
+
+.image-change-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.image-change-button {
+  flex: 1;
+  border: 1px solid #d8e2db;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  transition: 0.2s ease;
+}
+
+.image-change-button:hover {
+  border-color: #2e7d32;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .image-choice-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .image-choice-button {
+    padding: 16px;
+  }
+
+  .image-choice-icon {
+    font-size: 28px;
+  }
+
+  .image-change-buttons {
+    flex-direction: column;
+  }
+
+  .image-change-button {
+    width: 100%;
+  }
+
+  .report-image-preview {
+    max-height: 350px;
+  }
+}
+
+/* ========================================== */
+/* LOCATION PERMISSION POPUP */
+/* ========================================== */
+
+.location-permission-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.location-permission-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: locationModalAppear 0.2s ease;
+}
+
+.location-permission-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.location-permission-modal h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+}
+
+.location-permission-modal > p {
+  margin: 0 auto 20px;
+  max-width: 380px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.location-permission-error {
+  background: #fff4f4;
+  border: 1px solid #f0b8b8;
+  color: #a33a3a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.location-permission-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.location-cancel-button,
+.location-allow-button {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.location-cancel-button {
+  background: #f1f3f2;
+  color: #333;
+}
+
+.location-allow-button {
+  background: #2e7d32;
+  color: #ffffff;
+}
+
+.location-cancel-button:hover {
+  background: #e5e8e6;
+}
+
+.location-allow-button:hover {
+  background: #256b29;
+}
+
+.location-allow-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.location-permission-note {
+  margin-top: 18px !important;
+  margin-bottom: 0 !important;
+  font-size: 12px !important;
+  color: #777 !important;
+}
+
+@keyframes locationModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .location-permission-overlay {
+    padding: 16px;
+  }
+
+  .location-permission-modal {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .location-permission-modal h2 {
+    font-size: 21px;
+  }
+
+  .location-permission-actions {
+    flex-direction: column-reverse;
+  }
+
+  .location-cancel-button,
+  .location-allow-button {
+    width: 100%;
+  }
+}

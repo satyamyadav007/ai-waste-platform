@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 function ReportGarbage() {
   const [image, setImage] = useState(null);
@@ -9,6 +9,16 @@ function ReportGarbage() {
   const [location, setLocation] = useState(null);
   const [locationLoading, setLocationLoading] =
     useState(false);
+
+  // --------------------------------------------------
+  // LOCATION PERMISSION POPUP
+  // --------------------------------------------------
+
+  const [showLocationPermission, setShowLocationPermission] =
+    useState(false);
+
+  const [locationPermissionError, setLocationPermissionError] =
+    useState("");
 
   const [garbageType, setGarbageType] = useState("");
   const [description, setDescription] = useState("");
@@ -34,6 +44,13 @@ function ReportGarbage() {
 
   const [duplicateLoading, setDuplicateLoading] =
     useState(false);
+
+  // --------------------------------------------------
+  // CAMERA + GALLERY INPUT REFERENCES
+  // --------------------------------------------------
+
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   // --------------------------------------------------
   // COMPRESS IMAGE
@@ -106,6 +123,26 @@ function ReportGarbage() {
   }
 
   // --------------------------------------------------
+  // OPEN CAMERA
+  // --------------------------------------------------
+
+  function openCamera() {
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+  }
+
+  // --------------------------------------------------
+  // OPEN GALLERY
+  // --------------------------------------------------
+
+  function openGallery() {
+    if (galleryInputRef.current) {
+      galleryInputRef.current.click();
+    }
+  }
+
+  // --------------------------------------------------
   // IMAGE CHANGE
   // --------------------------------------------------
 
@@ -139,6 +176,8 @@ function ReportGarbage() {
       console.log(
         "Compressed image ready for storage and AI."
       );
+
+      event.target.value = "";
 
     } catch (error) {
       console.error(
@@ -376,10 +415,6 @@ function ReportGarbage() {
     setDuplicateResult(null);
 
     try {
-      // --------------------------------------------------
-      // FETCH PREVIOUS REPORTS FROM MONGODB
-      // --------------------------------------------------
-
       console.log(
         "Fetching previous reports from MongoDB..."
       );
@@ -399,10 +434,6 @@ function ReportGarbage() {
         );
       }
 
-      // --------------------------------------------------
-      // NORMALIZE MONGODB REPORTS
-      // --------------------------------------------------
-
       const allReports =
         reportsData.map(
           (report) => ({
@@ -418,10 +449,6 @@ function ReportGarbage() {
         "Reports fetched from MongoDB:",
         allReports.length
       );
-
-      // --------------------------------------------------
-      // FIND NEARBY REPORTS
-      // --------------------------------------------------
 
       const nearbyReports =
         allReports
@@ -495,10 +522,6 @@ function ReportGarbage() {
         return;
       }
 
-      // --------------------------------------------------
-      // NO NEARBY REPORTS
-      // --------------------------------------------------
-
       if (
         nearbyReports.length === 0
       ) {
@@ -519,10 +542,6 @@ function ReportGarbage() {
 
         return;
       }
-
-      // --------------------------------------------------
-      // PREPARE EXISTING REPORTS FOR AI
-      // --------------------------------------------------
 
       const existingReports =
         nearbyReports
@@ -640,13 +659,11 @@ function ReportGarbage() {
   }
 
   // --------------------------------------------------
-  // GET LOCATION
+  // OPEN LOCATION PERMISSION POPUP
   // --------------------------------------------------
 
   function getLocation() {
-    if (
-      !navigator.geolocation
-    ) {
+    if (!navigator.geolocation) {
       alert(
         "Geolocation is not supported by your browser."
       );
@@ -654,33 +671,77 @@ function ReportGarbage() {
       return;
     }
 
+    setLocationPermissionError("");
+
+    setShowLocationPermission(true);
+  }
+
+  // --------------------------------------------------
+  // REQUEST ACTUAL LOCATION
+  // --------------------------------------------------
+
+  function requestLocation() {
+    if (!navigator.geolocation) {
+      setLocationPermissionError(
+        "Your browser does not support location services."
+      );
+
+      return;
+    }
+
+    setShowLocationPermission(false);
+    setLocationPermissionError("");
     setLocationLoading(true);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
           latitude:
-            position.coords
-              .latitude,
+            position.coords.latitude,
 
           longitude:
-            position.coords
-              .longitude,
+            position.coords.longitude,
         });
 
         setLocationLoading(false);
 
-        setDuplicateResult(
-          null
+        setDuplicateResult(null);
+        setLocationPermissionError("");
+
+        console.log(
+          "Location detected:",
+          position.coords.latitude,
+          position.coords.longitude
         );
       },
 
-      () => {
-        alert(
-          "Unable to get your location. Please allow location access."
+      (error) => {
+        console.error(
+          "Location Error:",
+          error
         );
 
         setLocationLoading(false);
+
+        setShowLocationPermission(true);
+
+        if (error.code === 1) {
+          setLocationPermissionError(
+            "Location permission was denied. Please allow location access for CleanBharat in your browser settings."
+          );
+        } else if (error.code === 2) {
+          setLocationPermissionError(
+            "Your location could not be determined. Please make sure location services are turned on and try again."
+          );
+        } else if (error.code === 3) {
+          setLocationPermissionError(
+            "Location request timed out. Please try again."
+          );
+        } else {
+          setLocationPermissionError(
+            "Unable to get your location. Please allow location access and try again."
+          );
+        }
       }
     );
   }
@@ -732,10 +793,6 @@ function ReportGarbage() {
 
       longitude:
         location.longitude,
-
-      // --------------------------------------------------
-      // CONTEXT-AWARE LOCATION
-      // --------------------------------------------------
 
       sensitiveLocationType:
         sensitiveLocationType,
@@ -935,10 +992,6 @@ function ReportGarbage() {
       return;
     }
 
-    // --------------------------------------------------
-    // DUPLICATE CONFIRMATION
-    // --------------------------------------------------
-
     if (
       duplicateResult &&
       duplicateResult.duplicateDetected
@@ -985,7 +1038,9 @@ function ReportGarbage() {
 
         <div className="report-form">
 
-          {/* IMAGE */}
+          {/* ========================================== */}
+          {/* IMAGE UPLOAD */}
+          {/* ========================================== */}
 
           <div className="form-group">
 
@@ -993,44 +1048,130 @@ function ReportGarbage() {
               Garbage Image
             </label>
 
-            <label className="image-upload">
+            {!image ? (
 
-              {image ? (
-                <img
-                  src={image}
-                  alt="Garbage preview"
-                />
-              ) : (
-                <>
-                  <span className="upload-icon">
+              <div className="image-choice-container">
+
+                <button
+                  type="button"
+                  className="image-choice-button"
+                  onClick={
+                    openCamera
+                  }
+                >
+
+                  <span className="image-choice-icon">
                     📷
                   </span>
 
-                  <strong>
-                    Upload a garbage image
-                  </strong>
+                  <span>
+                    <strong>
+                      Take Photo
+                    </strong>
 
-                  <small>
-                    Click here to select an image
-                  </small>
-                </>
-              )}
+                    <small>
+                      Use your camera
+                    </small>
+                  </span>
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={
-                  handleImageChange
-                }
-                hidden
-              />
+                </button>
 
-            </label>
+
+                <button
+                  type="button"
+                  className="image-choice-button"
+                  onClick={
+                    openGallery
+                  }
+                >
+
+                  <span className="image-choice-icon">
+                    🖼️
+                  </span>
+
+                  <span>
+                    <strong>
+                      Choose from Gallery
+                    </strong>
+
+                    <small>
+                      Select an existing image
+                    </small>
+                  </span>
+
+                </button>
+
+              </div>
+
+            ) : (
+
+              <div className="image-preview-wrapper">
+
+                <img
+                  className="report-image-preview"
+                  src={image}
+                  alt="Garbage preview"
+                />
+
+                <div className="image-change-buttons">
+
+                  <button
+                    type="button"
+                    className="image-change-button"
+                    onClick={
+                      openCamera
+                    }
+                  >
+                    📷 Retake Photo
+                  </button>
+
+                  <button
+                    type="button"
+                    className="image-change-button"
+                    onClick={
+                      openGallery
+                    }
+                  >
+                    🖼️ Choose Another
+                  </button>
+
+                </div>
+
+              </div>
+
+            )}
+
+            <input
+              ref={
+                cameraInputRef
+              }
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={
+                handleImageChange
+              }
+              hidden
+            />
+
+            <input
+              ref={
+                galleryInputRef
+              }
+              type="file"
+              accept="image/*"
+              onChange={
+                handleImageChange
+              }
+              hidden
+            />
 
           </div>
 
 
+          {/* ========================================== */}
           {/* AI ANALYSIS */}
+          {/* ========================================== */}
 
           {image && (
 
@@ -1060,68 +1201,49 @@ function ReportGarbage() {
                   </h3>
 
                   <p>
-
                     <strong>
                       Garbage Detected:
                     </strong>{" "}
-
                     {aiResult
                       .garbageDetected
                       ? "Yes"
                       : "No"}
-
                   </p>
 
                   <p>
-
                     <strong>
                       Garbage Type:
                     </strong>{" "}
-
                     {
-                      aiResult
-                        .garbageType
+                      aiResult.garbageType
                     }
-
                   </p>
 
                   <p>
-
                     <strong>
                       Confidence:
                     </strong>{" "}
-
                     {
-                      aiResult
-                        .confidence
+                      aiResult.confidence
                     }%
-
                   </p>
 
                   <p>
-
                     <strong>
                       Severity:
                     </strong>{" "}
-
                     {
-                      aiResult
-                        .severity
+                      aiResult.severity
                     }
-
                   </p>
 
                   <p>
-
                     <strong>
                       Description:
                     </strong>{" "}
-
                     {
-                      aiResult
-                        .description
+                      aiResult.description
                     }
-
                   </p>
 
                 </div>
@@ -1133,7 +1255,9 @@ function ReportGarbage() {
           )}
 
 
+          {/* ========================================== */}
           {/* GARBAGE TYPE */}
+          {/* ========================================== */}
 
           <div className="form-group">
 
@@ -1186,7 +1310,9 @@ function ReportGarbage() {
           </div>
 
 
+          {/* ========================================== */}
           {/* DESCRIPTION */}
+          {/* ========================================== */}
 
           <div className="form-group">
 
@@ -1211,7 +1337,9 @@ function ReportGarbage() {
           </div>
 
 
+          {/* ========================================== */}
           {/* LOCATION */}
+          {/* ========================================== */}
 
           <div className="form-group">
 
@@ -1225,11 +1353,15 @@ function ReportGarbage() {
               onClick={
                 getLocation
               }
+              disabled={
+                locationLoading
+              }
             >
               {locationLoading
                 ? "Getting your location..."
                 : "📍 Use My Current Location"}
             </button>
+
 
             {location && (
 
@@ -1241,25 +1373,22 @@ function ReportGarbage() {
 
                 <p>
                   Latitude:{" "}
-
                   {
                     location.latitude
                   }
-
                 </p>
 
                 <p>
                   Longitude:{" "}
-
                   {
                     location.longitude
                   }
-
                 </p>
 
               </div>
 
             )}
+
 
             <p className="location-note">
               Your location will help the
@@ -1302,6 +1431,7 @@ function ReportGarbage() {
                   sensitiveLocationType
                 }
                 onChange={(event) => {
+
                   setSensitiveLocationType(
                     event.target.value
                   );
@@ -1310,6 +1440,7 @@ function ReportGarbage() {
                     event.target.value ===
                     "None"
                   ) {
+
                     setSensitiveLocationName(
                       ""
                     );
@@ -1317,7 +1448,9 @@ function ReportGarbage() {
                     setSensitiveLocationDistance(
                       ""
                     );
+
                   }
+
                 }}
               >
 
@@ -1386,10 +1519,13 @@ function ReportGarbage() {
                 <div className="form-group">
 
                   <label htmlFor="sensitive-location-name">
+
                     Location Name{" "}
+
                     <span className="optional-text">
                       (Optional)
                     </span>
+
                   </label>
 
                   <input
@@ -1412,10 +1548,13 @@ function ReportGarbage() {
                 <div className="form-group">
 
                   <label htmlFor="sensitive-location-distance">
+
                     Approximate Distance{" "}
+
                     <span className="optional-text">
                       (Optional)
                     </span>
+
                   </label>
 
                   <select
@@ -1482,7 +1621,9 @@ function ReportGarbage() {
           </div>
 
 
+          {/* ========================================== */}
           {/* DUPLICATE CHECK */}
+          {/* ========================================== */}
 
           {image && location && (
 
@@ -1507,10 +1648,13 @@ function ReportGarbage() {
                   duplicateLoading
                 }
               >
+
                 {duplicateLoading
                   ? "🤖 Checking..."
                   : "🔍 Check for Duplicate"}
+
               </button>
+
 
               {duplicateResult && (
 
@@ -1532,6 +1676,7 @@ function ReportGarbage() {
                     }
                   </h3>
 
+
                   <p>
 
                     <strong>
@@ -1544,6 +1689,7 @@ function ReportGarbage() {
                     }%
 
                   </p>
+
 
                   <p>
 
@@ -1567,7 +1713,9 @@ function ReportGarbage() {
           )}
 
 
+          {/* ========================================== */}
           {/* SUBMIT */}
+          {/* ========================================== */}
 
           <button
             type="button"
@@ -1582,6 +1730,89 @@ function ReportGarbage() {
         </div>
 
       </div>
+
+
+      {/* ========================================== */}
+      {/* LOCATION PERMISSION MODAL */}
+      {/* ========================================== */}
+
+      {showLocationPermission && (
+
+        <div className="location-permission-overlay">
+
+          <div className="location-permission-modal">
+
+            <div className="location-permission-icon">
+              📍
+            </div>
+
+            <h2>
+              Location Access Required
+            </h2>
+
+            <p>
+              CleanBharat needs your location
+              to help the waste collector find
+              the reported garbage.
+            </p>
+
+            {locationPermissionError && (
+
+              <div className="location-permission-error">
+
+                ⚠️ {locationPermissionError}
+
+              </div>
+
+            )}
+
+            <div className="location-permission-actions">
+
+              <button
+                type="button"
+                className="location-cancel-button"
+                onClick={() => {
+                  setShowLocationPermission(
+                    false
+                  );
+
+                  setLocationPermissionError(
+                    ""
+                  );
+                }}
+              >
+                Cancel
+              </button>
+
+
+              <button
+                type="button"
+                className="location-allow-button"
+                onClick={
+                  requestLocation
+                }
+                disabled={
+                  locationLoading
+                }
+              >
+                {locationLoading
+                  ? "Getting Location..."
+                  : "Allow Location"}
+              </button>
+
+            </div>
+
+            <p className="location-permission-note">
+              Your browser may now ask you to
+              allow location access. Please select
+              <strong> Allow</strong>.
+            </p>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );
